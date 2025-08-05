@@ -230,7 +230,12 @@ export function UploadZone({
       {error && (
         <Alert variant="destructive" className="mt-4">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>
+            {error.includes('Failed to retrieve the client token') 
+              ? 'Upload failed: BLOB_READ_WRITE_TOKEN environment variable is not configured. Please set your Vercel Blob token to enable uploads.'
+              : error
+            }
+          </AlertDescription>
           <Button
             variant="outline"
             size="sm"

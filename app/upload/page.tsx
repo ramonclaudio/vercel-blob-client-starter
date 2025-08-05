@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +19,7 @@ interface FileItem extends PutBlobResult {
   size?: number;
 }
 
-export default function UploadPage() {
+function UploadPageContent() {
   const searchParams = useSearchParams();
   const [uploadedFiles, setUploadedFiles] = useState<FileItem[]>([]);
   const [activeTab, setActiveTab] = useState<string>('standard');
@@ -273,6 +273,40 @@ export default function UploadPage() {
           />
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+export default function UploadPage() {
+  return (
+    <Suspense fallback={<UploadPageSkeleton />}>
+      <UploadPageContent />
+    </Suspense>
+  );
+}
+
+function UploadPageSkeleton() {
+  return (
+    <div className="container mx-auto py-8 px-4 max-w-6xl">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Vercel Blob Upload Demo</h1>
+        <p className="text-muted-foreground">
+          Complete showcase of Vercel Blob client-side upload capabilities
+        </p>
+      </div>
+      
+      <div className="space-y-6">
+        <div className="h-12 bg-muted rounded-lg animate-pulse" />
+        <div className="rounded-lg border bg-card">
+          <div className="p-6 space-y-2">
+            <div className="h-6 bg-muted rounded w-48 animate-pulse" />
+            <div className="h-4 bg-muted rounded w-96 mt-2 animate-pulse" />
+          </div>
+          <div className="p-6">
+            <div className="h-64 bg-muted rounded animate-pulse" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
