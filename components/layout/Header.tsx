@@ -124,7 +124,7 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="right" className="w-80">
               <SheetHeader>
-                <SheetTitle>Navigation</SheetTitle>
+                <SheetTitle>Menu</SheetTitle>
               </SheetHeader>
               <div className="mt-6 flex flex-col space-y-3">
                 <MobileNavItem
