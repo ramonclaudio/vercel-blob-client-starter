@@ -62,8 +62,8 @@ export default function Home() {
       {/* Hero Section */}
       <section className="pt-12 lg:pt-20 pb-8 lg:pb-12">
         <div className="text-center mb-8 lg:mb-10">
-          <div className="flex items-center justify-center mb-6">
-            <div className="bg-primary/10 p-3 rounded-full mr-4">
+          <div className="flex flex-col md:flex-row items-center justify-center mb-6">
+            <div className="bg-primary/10 p-3 rounded-full mb-4 md:mb-0 md:mr-4">
               <Upload className="size-8 text-primary" />
             </div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
