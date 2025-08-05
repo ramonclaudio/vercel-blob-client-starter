@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ interface FileItem extends PutBlobResult {
 }
 
 export default function UploadPage() {
+  const searchParams = useSearchParams();
   const [uploadedFiles, setUploadedFiles] = useState<FileItem[]>([]);
   const [activeTab, setActiveTab] = useState<string>('standard');
   const { deleteFile, isDeleting, abortDelete } = useDeleteBlob();
@@ -32,6 +34,16 @@ export default function UploadPage() {
     multipart: false,
     clientPayload: {},
   });
+
+  // Set initial tab from URL parameters
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'advanced') {
+      setActiveTab('advanced');
+    } else {
+      setActiveTab('standard');
+    }
+  }, [searchParams]);
 
   // Load files from localStorage on mount
   useEffect(() => {
@@ -100,7 +112,7 @@ export default function UploadPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="standard" className="space-y-6" onValueChange={setActiveTab}>
+      <Tabs value={activeTab} className="space-y-6" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="standard" className="flex items-center">
             <Upload className="w-4 h-4 mr-2" />

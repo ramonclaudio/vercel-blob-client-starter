@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
+import { Menu } from 'lucide-react';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -11,10 +13,19 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export function Header() {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -28,8 +39,8 @@ export function Header() {
             <span className="font-bold text-xl">Vercel Blob</span>
           </Link>
 
-          {/* Navigation */}
-          <NavigationMenu viewport={false}>
+          {/* Desktop Navigation */}
+          <NavigationMenu viewport={false} className="hidden lg:flex">
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
@@ -100,14 +111,127 @@ export function Header() {
                   </div>
                 </NavigationMenuContent>
               </NavigationMenuItem>
-
             </NavigationMenuList>
           </NavigationMenu>
+
+          {/* Mobile Navigation */}
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild className="lg:hidden">
+              <Button variant="ghost" size="icon">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-80">
+              <SheetHeader>
+                <SheetTitle>Navigation</SheetTitle>
+              </SheetHeader>
+              <div className="mt-6 flex flex-col space-y-3">
+                <MobileNavItem
+                  href="/"
+                  isActive={pathname === '/'}
+                  onClick={() => setIsOpen(false)}
+                >
+                  Home
+                </MobileNavItem>
+                
+                <div className="flex flex-col space-y-2">
+                  <span className="text-sm font-medium text-muted-foreground px-3 py-2">Upload</span>
+                  <MobileNavItem
+                    href="/upload?tab=standard"
+                    isActive={pathname === '/upload' && (typeof window === 'undefined' || !window.location.search.includes('tab=advanced'))}
+                    onClick={() => setIsOpen(false)}
+                    className="ml-3"
+                  >
+                    Standard Upload
+                  </MobileNavItem>
+                  <MobileNavItem
+                    href="/upload?tab=advanced"
+                    isActive={pathname === '/upload' && typeof window !== 'undefined' && window.location.search.includes('tab=advanced')}
+                    onClick={() => setIsOpen(false)}
+                    className="ml-3"
+                  >
+                    Advanced Configuration
+                  </MobileNavItem>
+                </div>
+
+                <MobileNavItem
+                  href="/gallery"
+                  isActive={pathname === '/gallery'}
+                  onClick={() => setIsOpen(false)}
+                >
+                  Gallery
+                </MobileNavItem>
+
+                <div className="flex flex-col space-y-2">
+                  <span className="text-sm font-medium text-muted-foreground px-3 py-2">Resources</span>
+                  <MobileNavItem
+                    href="https://vercel.com/docs/storage/vercel-blob"
+                    onClick={() => setIsOpen(false)}
+                    external
+                    className="ml-3"
+                  >
+                    Documentation
+                  </MobileNavItem>
+                  <MobileNavItem
+                    href="https://github.com/RMNCLDYO/vercel-blob-client-starter"
+                    onClick={() => setIsOpen(false)}
+                    external
+                    className="ml-3"
+                  >
+                    GitHub
+                  </MobileNavItem>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>
   );
 }
+
+const MobileNavItem = ({
+  href,
+  children,
+  isActive = false,
+  external = false,
+  onClick,
+  className,
+}: {
+  href: string;
+  children: React.ReactNode;
+  isActive?: boolean;
+  external?: boolean;
+  onClick?: () => void;
+  className?: string;
+}) => {
+  const baseClasses = cn(
+    'flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
+    isActive && 'bg-accent text-accent-foreground',
+    className
+  );
+
+  if (external) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={baseClasses}
+        onClick={onClick}
+      >
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={href} className={baseClasses} onClick={onClick}>
+      {children}
+    </Link>
+  );
+};
 
 const ListItem = ({
   className,
