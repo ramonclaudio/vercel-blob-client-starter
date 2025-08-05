@@ -112,7 +112,7 @@ export function Footer() {
                 Documentation
               </a>
               <a 
-                href="https://github.com/vercel/blob" 
+                href="https://github.com/RMNCLDYO/vercel-blob-client-starter" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
