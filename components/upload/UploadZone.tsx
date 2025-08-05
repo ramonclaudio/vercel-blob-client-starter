@@ -231,19 +231,23 @@ export function UploadZone({
         <Alert variant="destructive" className="mt-4">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            {error.includes('Failed to retrieve the client token') 
-              ? 'Upload failed: BLOB_READ_WRITE_TOKEN environment variable is not configured. Please set your Vercel Blob token to enable uploads.'
-              : error
-            }
+            <div className="space-y-3">
+              <p>
+                {error.includes('Failed to retrieve the client token') 
+                  ? 'Upload failed: BLOB_READ_WRITE_TOKEN environment variable is not configured. Please set your Vercel Blob token to enable uploads.'
+                  : error
+                }
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={resetState}
+                className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+              >
+                Try Again
+              </Button>
+            </div>
           </AlertDescription>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resetState}
-            className="mt-2"
-          >
-            Try Again
-          </Button>
         </Alert>
       )}
 
