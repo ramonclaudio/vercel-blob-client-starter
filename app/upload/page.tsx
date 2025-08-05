@@ -120,7 +120,8 @@ function UploadPageContent() {
           </TabsTrigger>
           <TabsTrigger value="advanced" className="flex items-center">
             <Settings className="w-4 h-4 mr-2" />
-            Advanced Configuration
+            <span className="hidden sm:inline">Advanced Config</span>
+            <span className="sm:hidden">Advanced</span>
           </TabsTrigger>
         </TabsList>
 
