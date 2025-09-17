@@ -29,7 +29,7 @@ export async function POST(request: Request): Promise<NextResponse> {
           // Allow common image, video, and document types
           allowedContentTypes: [
             'image/jpeg',
-            'image/png', 
+            'image/png',
             'image/webp',
             'image/gif',
             'video/mp4',
@@ -48,8 +48,16 @@ export async function POST(request: Request): Promise<NextResponse> {
           validUntil: Date.now() + (payload.validityMinutes || 60) * 60 * 1000,
           // Allow overwriting if specified
           allowOverwrite: payload.allowOverwrite ?? false,
-          // Custom cache control (default 1 month)
-          cacheControlMaxAge: payload.cacheControlMaxAge || 60 * 60 * 24 * 30,
+          cacheControlMaxAge: payload.cacheControlMaxAge || 60 * 60 * 24 * 90,
+          // Callback URL for onUploadCompleted
+          // 1. VERCEL_BLOB_CALLBACK_URL (local development with ngrok)
+          // 2. VERCEL_BRANCH_URL (preview environments)
+          // 3. VERCEL_URL (preview fallback)
+          // 4. VERCEL_PROJECT_PRODUCTION_URL (production)
+          callbackUrl: process.env.VERCEL_BLOB_CALLBACK_URL ||
+                      process.env.VERCEL_BRANCH_URL ||
+                      process.env.VERCEL_URL ||
+                      process.env.VERCEL_PROJECT_PRODUCTION_URL,
           // Include metadata in token payload
           tokenPayload: JSON.stringify({
             uploadedBy: 'anonymous', // In real app, use authenticated user ID
