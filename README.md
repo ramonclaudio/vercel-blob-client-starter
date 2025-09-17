@@ -126,6 +126,15 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 - ✅ **Blob storage edge cache** - 90 days for uploaded content
 - ✅ **Hobby plan optimized** - Reduces transfer costs by ~60-70%
 
+### Image Optimization
+- ✅ **Next.js Image component** for automatic optimization
+- ✅ **WebP/AVIF conversion** - 50-80% smaller than JPEG
+- ✅ **Responsive sizing** - 8 device breakpoints for perfect fit
+- ✅ **Lazy loading** with blur placeholder for smooth UX
+- ✅ **Smart quality settings** - Adaptive based on image importance
+- ✅ **1 year cache** for blob images with unique URLs
+- ✅ **Automatic format selection** based on browser support
+
 ## 🏗 Project Structure
 
 ```
@@ -153,7 +162,8 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 │   ├── useBlobMetadata.ts         # Metadata retrieval
 │   └── useListBlobs.ts            # Blob listing with pagination
 ├── lib/
-│   └── utils.ts                   # Utility functions
+│   ├── utils.ts                   # Utility functions
+│   └── image-optimization.ts      # Image optimization utilities
 └── middleware.ts                  # Geo-adaptive caching & security headers
 ```
 

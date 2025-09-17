@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Download, Eye, Trash2, Copy, ExternalLink, Files, Info } from 'lucide-react';
+import { BLUR_DATA_URL, getImageSizes, getImageQuality } from '@/lib/image-optimization';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -139,7 +140,11 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
               alt={file.pathname}
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes={getImageSizes('gallery')}
+              quality={getImageQuality('medium')}
+              loading="lazy"
+              placeholder="blur"
+              blurDataURL={BLUR_DATA_URL}
             />
           </div>
         );
