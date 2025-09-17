@@ -20,11 +20,11 @@ Complete client-side Vercel Blob starter with Next.js 15 & React 19. Features: d
 ## 🛠 Tech Stack
 
 - **Next.js 15** with App Router
-- **React 19** with latest features  
+- **React 19** with latest features
 - **TypeScript** with strict configuration
 - **Tailwind CSS v4** with custom theming
 - **shadcn/ui** for all UI components
-- **@vercel/blob** for blob storage operations
+- **@vercel/blob v2.0** with full SDK compliance
 - **Sonner** for toast notifications
 
 ## 🚀 Quick Start
@@ -61,6 +61,36 @@ Deploy this template in one click:
 
 4. **Open [http://localhost:3000](http://localhost:3000)** in your browser
 
+### Local Development with Upload Callbacks
+
+For the `onUploadCompleted` callback to work during local development, you'll need to use a tunneling service like ngrok to expose your local server to the internet:
+
+1. **Install ngrok:**
+   ```bash
+   npm install -g ngrok
+   ```
+
+2. **Start your development server:**
+   ```bash
+   pnpm dev
+   ```
+
+3. **In another terminal, start ngrok:**
+   ```bash
+   ngrok http 3000
+   ```
+
+4. **Copy the ngrok URL and add it to `.env.local`:**
+   ```env
+   VERCEL_BLOB_CALLBACK_URL=https://your-ngrok-id.ngrok-free.app
+   ```
+
+5. **Restart your development server** to pick up the new environment variable.
+
+Now upload callbacks will work properly in your local development environment!
+
+> **Note**: This is only needed for local development. When deployed to Vercel, the callback URL is automatically configured using Vercel's system environment variables.
+
 ## 📖 What You'll Learn
 
 This starter demonstrates **every client-side Vercel Blob feature** with complete SDK compliance:
@@ -88,6 +118,14 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 - ✅ **Blob deletion** using `del()` from `@vercel/blob`
 - ✅ **Comprehensive error handling** with `BlobAccessError` detection
 
+### Performance & Caching
+- ✅ **Multi-tier CDN caching** with Vercel-CDN-Cache-Control headers
+- ✅ **Geo-adaptive optimization** - 2x cache times for optimal regions
+- ✅ **Stale-while-revalidate** for instant responses with background updates
+- ✅ **Static asset caching** - 1 year immutable cache for JS/CSS
+- ✅ **Blob storage edge cache** - 90 days for uploaded content
+- ✅ **Hobby plan optimized** - Reduces transfer costs by ~60-70%
+
 ## 🏗 Project Structure
 
 ```
@@ -114,8 +152,9 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 │   ├── useCopyBlob.ts             # Blob duplication
 │   ├── useBlobMetadata.ts         # Metadata retrieval
 │   └── useListBlobs.ts            # Blob listing with pagination
-└── lib/
-    └── utils.ts                   # Utility functions
+├── lib/
+│   └── utils.ts                   # Utility functions
+└── middleware.ts                  # Geo-adaptive caching & security headers
 ```
 
 ## 🎯 Key Implementation Highlights

@@ -26,6 +26,11 @@ export const metadata: Metadata = {
     description: "Ultimate showcase of Vercel Blob client-side features",
     type: "website",
   },
+  other: {
+    // DNS prefetch for faster blob loading
+    'dns-prefetch-1': 'https://blob.vercel-storage.com',
+    'dns-prefetch-2': 'https://public.blob.vercel-storage.com',
+  },
 };
 
 export default function RootLayout({

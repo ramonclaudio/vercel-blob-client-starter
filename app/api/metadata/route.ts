@@ -28,7 +28,14 @@ export async function GET(request: Request) {
     });
 
     clearTimeout(timeoutId);
-    return Response.json(blobDetails);
+    return Response.json(blobDetails, {
+      headers: {
+        // Cache metadata for 10 minutes, stale-while-revalidate for 1 hour
+        'Cache-Control': 'public, max-age=0, s-maxage=600, stale-while-revalidate=3600',
+        'CDN-Cache-Control': 'public, max-age=600, stale-while-revalidate=3600',
+        'Vercel-CDN-Cache-Control': 'public, max-age=1800', // 30 minutes for Vercel CDN
+      }
+    });
 
   } catch (error) {
     clearTimeout(timeoutId);
