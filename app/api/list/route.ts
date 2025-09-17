@@ -34,6 +34,13 @@ export async function GET(request: Request) {
       cursor: result.cursor,
       hasMore: result.hasMore,
       folders: 'folders' in result ? result.folders : undefined,
+    }, {
+      headers: {
+        // Cache blob lists for 30 seconds, stale-while-revalidate for 5 minutes
+        'Cache-Control': 'public, max-age=0, s-maxage=30, stale-while-revalidate=300',
+        'CDN-Cache-Control': 'public, max-age=30, stale-while-revalidate=300',
+        'Vercel-CDN-Cache-Control': 'public, max-age=60', // Longer cache for Vercel CDN
+      }
     });
 
   } catch (error) {
