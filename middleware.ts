@@ -11,18 +11,24 @@ export function middleware(request: NextRequest) {
   response.headers.set('X-XSS-Protection', '1; mode=block');
   response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
 
-  response.headers.set('Content-Security-Policy',
-    "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; " +
-    "style-src 'self' 'unsafe-inline'; " +
-    "img-src 'self' data: blob: https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com; " +
-    "font-src 'self' data:; " +
-    "connect-src 'self' https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com https://vercel.live; " +
-    "media-src 'self' blob: https://*.blob.vercel-storage.com; " +
-    "frame-ancestors 'none'; " +
-    "base-uri 'self'; " +
-    "form-action 'self'"
-  );
+  const isDev = process.env.NODE_ENV === 'development';
+
+  const cspHeader = [
+    "default-src 'self'",
+    `script-src 'self'${isDev ? " 'unsafe-eval'" : ''} https://vercel.live`,
+    `style-src 'self'${isDev ? " 'unsafe-inline'" : ''}`,
+    "img-src 'self' data: blob: https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com",
+    "font-src 'self' data:",
+    "connect-src 'self' https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com https://vercel.live",
+    "media-src 'self' blob: https://*.blob.vercel-storage.com",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "upgrade-insecure-requests"
+  ].join('; ');
+
+  response.headers.set('Content-Security-Policy', cspHeader);
 
   const pathname = request.nextUrl.pathname;
 
