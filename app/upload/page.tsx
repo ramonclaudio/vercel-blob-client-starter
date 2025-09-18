@@ -25,17 +25,16 @@ function UploadPageContent() {
   const [activeTab, setActiveTab] = useState<string>('standard');
   const { deleteFile, isDeleting, abortDelete } = useDeleteBlob();
   const [advancedConfig, setAdvancedConfig] = useState<UploadOptions>({
-    maxSize: 100 * 1024 * 1024, // 100MB default
+    maxSize: 100 * 1024 * 1024,
     allowedTypes: [],
     addRandomSuffix: true,
     allowOverwrite: false,
-    cacheControlMaxAge: 60 * 60 * 24 * 30, // 30 days
-    validityMinutes: 60, // 1 hour
+    cacheControlMaxAge: 60 * 60 * 24 * 30,
+    validityMinutes: 60,
     multipart: false,
     clientPayload: {},
   });
 
-  // Set initial tab from URL parameters
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab === 'advanced') {
@@ -45,7 +44,6 @@ function UploadPageContent() {
     }
   }, [searchParams]);
 
-  // Load files from localStorage on mount
   useEffect(() => {
     const savedFiles = localStorage.getItem('uploadedFiles');
     if (savedFiles) {
@@ -57,7 +55,6 @@ function UploadPageContent() {
     }
   }, []);
 
-  // Save files to localStorage whenever files change
   useEffect(() => {
     localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
   }, [uploadedFiles]);
@@ -66,7 +63,7 @@ function UploadPageContent() {
     const fileItem: FileItem = {
       ...result,
       uploadedAt: new Date().toISOString(),
-      size: originalFile.size, // Now we have the original file size!
+      size: originalFile.size,
     };
     
     setUploadedFiles(prev => [fileItem, ...prev]);
@@ -81,10 +78,8 @@ function UploadPageContent() {
     const toastId = toast.loading(`Deleting ${fileToDelete.pathname}...`);
     
     try {
-      // Delete from Vercel Blob
       await deleteFile(fileToDelete.url);
       
-      // Remove from local state
       setUploadedFiles(prev => prev.filter(file => file.url !== fileToDelete.url));
       
       toast.success(`Successfully deleted ${fileToDelete.pathname}!`, { id: toastId });
@@ -95,7 +90,6 @@ function UploadPageContent() {
   };
 
   const handleCopyFile = (originalFile: FileItem, newFile: FileItem) => {
-    // Add the copied file to our uploaded files list
     setUploadedFiles(prev => [...prev, newFile]);
   };
 
@@ -139,9 +133,8 @@ function UploadPageContent() {
                 onUploadError={handleUploadError}
                 multiple={true}
                 options={{
-                  maxSize: 100 * 1024 * 1024, // 100MB
+                  maxSize: 100 * 1024 * 1024,
                   addRandomSuffix: true,
-                  // multipart: automatically enabled for files >100MB as per docs recommendation
                 }}
               />
             </CardContent>
@@ -175,7 +168,6 @@ function UploadPageContent() {
                 </CardContent>
               </Card>
 
-              {/* Configuration Preview */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Active Configuration</CardTitle>
@@ -229,7 +221,6 @@ function UploadPageContent() {
         </TabsContent>
       </Tabs>
 
-      {/* File Gallery */}
       <Card className="mt-8">
         <CardHeader>
           <div className="flex items-center justify-between">
