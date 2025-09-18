@@ -28,7 +28,7 @@ export interface ListBlobsState {
   isLoading: boolean;
   error: string | null;
   data: ListBlobsResult | null;
-  allBlobs: BlobItem[]; // Accumulated blobs for pagination
+  allBlobs: BlobItem[];
 }
 
 export function useListBlobs() {
@@ -42,7 +42,6 @@ export function useListBlobs() {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const listBlobs = useCallback(async (options: ListBlobsOptions = {}): Promise<ListBlobsResult> => {
-    // Create abort controller for this list operation
     abortControllerRef.current = new AbortController();
 
     setState(prev => ({
@@ -52,7 +51,6 @@ export function useListBlobs() {
     }));
 
     try {
-      // Build query parameters
       const params = new URLSearchParams();
       if (options.limit) params.append('limit', options.limit.toString());
       if (options.prefix) params.append('prefix', options.prefix);
@@ -71,7 +69,6 @@ export function useListBlobs() {
 
       const result: ListBlobsResult = await response.json();
 
-      // Convert uploadedAt strings to Date objects
       const processedBlobs = result.blobs.map(blob => ({
         ...blob,
         uploadedAt: new Date(blob.uploadedAt),
@@ -87,7 +84,6 @@ export function useListBlobs() {
         isLoading: false,
         error: null,
         data: processedResult,
-        // If no cursor provided, reset accumulated blobs, otherwise append
         allBlobs: options.cursor ? [...prev.allBlobs, ...processedBlobs] : processedBlobs,
       }));
 
@@ -117,7 +113,6 @@ export function useListBlobs() {
   }, [state.data?.hasMore, state.data?.cursor, listBlobs]);
 
   const refresh = useCallback(async (options: ListBlobsOptions = {}): Promise<ListBlobsResult> => {
-    // Reset accumulated blobs and refresh from start
     setState(prev => ({
       ...prev,
       allBlobs: [],
@@ -131,7 +126,6 @@ export function useListBlobs() {
     let cursor: string | undefined = undefined;
     const allBlobs: BlobItem[] = [];
 
-    // Reset state
     setState(prev => ({
       ...prev,
       allBlobs: [],
@@ -148,7 +142,7 @@ export function useListBlobs() {
       cursor = result.cursor;
     }
 
-    return state.allBlobs; // Return accumulated blobs from state
+    return state.allBlobs;
   }, [listBlobs, state.allBlobs]);
 
   const abortRequest = useCallback(() => {
