@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Image optimization for blob storage and performance
   images: {
     remotePatterns: [
       {
@@ -13,37 +12,31 @@ const nextConfig: NextConfig = {
         hostname: '*.blob.vercel-storage.com',
       }
     ],
-    // Cache optimization for blob images
-    minimumCacheTTL: 31536000, // 1 year for blob images (they have unique URLs)
-    // Responsive breakpoints optimized for common devices
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    // Modern formats for better compression (50-80% smaller than JPEG)
-    formats: ['image/webp', 'image/avif'],
-    // Security: prevent SVG XSS attacks
+    minimumCacheTTL: 2678400,
+
+    deviceSizes: [640, 1080, 1920, 2048],
+
+    imageSizes: [32, 64, 128, 256],
+
+    formats: ['image/webp'],
+
+    qualities: [75],
+
     dangerouslyAllowSVG: false,
-    // Disable static imports (we only use remote images from blob storage)
+
     disableStaticImages: false,
-    // Output image optimization tracing
-    output: 'standalone',
-    // Optimize images during build for better performance
     unoptimized: false,
   },
 
-  // Compression and performance optimization
-  compress: true, // Enable gzip compression
-  poweredByHeader: false, // Remove X-Powered-By header for security
+  compress: true,
+  poweredByHeader: false,
 
-  // Performance optimization
   experimental: {
-    // Enable modern features for better performance
     scrollRestoration: true,
   },
 
-  // Headers for static assets and CDN optimization
   async headers() {
     return [
-      // Static assets caching
       {
         source: '/(.*)',
         headers: [
@@ -61,33 +54,34 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // Long cache for static assets
       {
         source: '/favicon.ico',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable', // 1 year
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },
-      // Cache for images, CSS, JS
       {
         source: '/_next/static/(.*)',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable', // 1 year
+            value: 'public, max-age=31536000, immutable',
+          },
+          {
+            key: 'Vary',
+            value: 'Accept-Encoding',
           },
         ],
       },
-      // Optimize font loading
       {
         source: '/fonts/(.*)',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable', // 1 year
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },
