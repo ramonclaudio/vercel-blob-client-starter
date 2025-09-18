@@ -59,7 +59,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-      {/* Hero Section */}
       <section className="pt-12 lg:pt-20 pb-8 lg:pb-12">
         <div className="text-center mb-8 lg:mb-10">
           <div className="flex flex-col md:flex-row items-center justify-center mb-6">
@@ -98,7 +97,6 @@ export default function Home() {
 
       </section>
 
-      {/* Features Section */}
       <section className="pt-8 lg:pt-12 pb-12 lg:pb-16">
         <h2 className="text-3xl lg:text-4xl font-bold text-center mb-8 lg:mb-12">Features Showcase</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -121,7 +119,6 @@ export default function Home() {
           </div>
       </section>
 
-      {/* Demo Sections */}
       <section className="py-12 lg:py-16">
         <h2 className="text-3xl lg:text-4xl font-bold text-center mb-8 lg:mb-12">Two Simple Modes</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -143,7 +140,6 @@ export default function Home() {
           </div>
       </section>
 
-      {/* Tech Stack */}
       <section className="py-12 lg:py-16">
         <Card>
           <CardHeader>
@@ -176,7 +172,6 @@ export default function Home() {
         </Card>
       </section>
 
-      {/* Deploy to Vercel */}
       <section className="py-12 lg:py-16">
         <Card>
           <CardHeader>
