@@ -16,7 +16,6 @@ export function useDeleteBlob() {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const deleteFile = useCallback(async (url: string): Promise<void> => {
-    // Create abort controller for this delete operation
     abortControllerRef.current = new AbortController();
 
     setDeleteState({
@@ -52,7 +51,6 @@ export function useDeleteBlob() {
   }, []);
 
   const deleteMultipleFiles = useCallback(async (urls: string[]): Promise<void> => {
-    // Create abort controller for this bulk delete operation
     abortControllerRef.current = new AbortController();
 
     setDeleteState({
