@@ -2,18 +2,16 @@ import { del, BlobAccessError } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 
 export async function DELETE(request: Request) {
-  // Create AbortController for this request
   const abortController = new AbortController();
   
-  // Handle request timeout (optional - good practice)
   const timeoutId = setTimeout(() => {
     abortController.abort();
-  }, 30000); // 30 second timeout
+  }, 30000);
 
   try {
     const { searchParams } = new URL(request.url);
     const urlToDelete = searchParams.get('url') as string;
-    const urlsParam = searchParams.get('urls'); // For bulk delete
+    const urlsParam = searchParams.get('urls');
     
     if (!urlToDelete && !urlsParam) {
       clearTimeout(timeoutId);
@@ -23,7 +21,6 @@ export async function DELETE(request: Request) {
       );
     }
 
-    // Handle bulk delete
     if (urlsParam) {
       try {
         const urls = JSON.parse(urlsParam) as string[];
@@ -31,9 +28,13 @@ export async function DELETE(request: Request) {
           abortSignal: abortController.signal,
         });
         clearTimeout(timeoutId);
-        return NextResponse.json({ 
+        return NextResponse.json({
           message: `Successfully deleted ${urls.length} files`,
-          deletedCount: urls.length 
+          deletedCount: urls.length
+        }, {
+          headers: {
+            'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+          }
         });
       } catch {
         clearTimeout(timeoutId);
@@ -44,14 +45,17 @@ export async function DELETE(request: Request) {
       }
     }
 
-    // Handle single delete
     await del(urlToDelete, {
       abortSignal: abortController.signal,
     });
     clearTimeout(timeoutId);
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'File deleted successfully',
-      deletedUrl: urlToDelete 
+      deletedUrl: urlToDelete
+    }, {
+      headers: {
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+      }
     });
 
   } catch (error) {
@@ -62,15 +66,13 @@ export async function DELETE(request: Request) {
     let statusCode = 500;
 
     if (error instanceof BlobAccessError) {
-      // Handle known Vercel Blob errors
       errorMessage = `Blob access error: ${error.message}`;
-      statusCode = 403; // Access forbidden
+      statusCode = 403;
     } else if (error instanceof Error) {
       errorMessage = error.message;
-      // Check if it's an abort error
       if (error.name === 'AbortError') {
         errorMessage = 'Delete operation was cancelled';
-        statusCode = 499; // Client closed request
+        statusCode = 499;
       }
     }
 
