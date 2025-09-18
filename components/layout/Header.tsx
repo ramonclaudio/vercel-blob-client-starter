@@ -31,7 +31,6 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto max-w-screen-xl px-4 xl:px-0">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">VB</span>
@@ -39,7 +38,6 @@ export function Header() {
             <span className="font-bold text-xl">Vercel Blob</span>
           </Link>
 
-          {/* Desktop Navigation */}
           <NavigationMenu viewport={false} className="hidden lg:flex">
             <NavigationMenuList>
               <NavigationMenuItem>
@@ -114,7 +112,6 @@ export function Header() {
             </NavigationMenuList>
           </NavigationMenu>
 
-          {/* Mobile Navigation */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild className="lg:hidden">
               <Button variant="ghost" size="icon">
