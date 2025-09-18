@@ -29,7 +29,6 @@ export function useCopyBlob() {
     toPathname: string,
     options: CopyOptions = {}
   ): Promise<PutBlobResult> => {
-    // Create abort controller for this copy operation
     abortControllerRef.current = new AbortController();
 
     setCopyState({
@@ -39,7 +38,6 @@ export function useCopyBlob() {
     });
 
     try {
-      // Prepare form data
       const formData = new FormData();
       formData.append('fromUrl', fromUrl);
       formData.append('toPathname', toPathname);

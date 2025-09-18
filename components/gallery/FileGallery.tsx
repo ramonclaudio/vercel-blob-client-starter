@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Download, Eye, Trash2, Copy, ExternalLink, Files, Info } from 'lucide-react';
+import { BLUR_DATA_URL, getImageSizes, getImageQuality } from '@/lib/image-optimization';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -94,15 +95,14 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
     
     try {
       const result = await copyBlob(file.url, newPathname, {
-        addRandomSuffix: true, // Ensure unique filename
+        addRandomSuffix: true,
         contentType: file.contentType,
       });
       
-      // Convert result to FileItem format
       const newFile: FileItem = {
         ...result,
         uploadedAt: new Date().toISOString(),
-        size: file.size, // Copy won't return size, so we use original
+        size: file.size,
       };
       
       onCopy?.(file, newFile);
@@ -123,15 +123,18 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to get metadata';
       toast.error(`Failed to get metadata: ${errorMessage}`, { id: toastId });
-      setMetadataFile(null); // Close dialog on error
+      setMetadataFile(null);
     }
   };
 
-  const renderFilePreview = (file: FileItem) => {
+  const renderFilePreview = (file: FileItem, index: number) => {
     const fileType = getFileType(file.contentType);
 
     switch (fileType) {
       case 'image':
+        const shouldOptimize = !file.size || file.size > 10240;
+        const isPriority = index < 4;
+
         return (
           <div className="aspect-video w-full bg-muted rounded-lg overflow-hidden relative">
             <Image
@@ -139,7 +142,13 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
               alt={file.pathname}
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes={getImageSizes('gallery')}
+              quality={75}
+              priority={isPriority}
+              loading={isPriority ? undefined : "lazy"}
+              placeholder={shouldOptimize ? "blur" : "empty"}
+              blurDataURL={shouldOptimize ? BLUR_DATA_URL : undefined}
+              unoptimized={!shouldOptimize}
             />
           </div>
         );
@@ -267,7 +276,7 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
         {files.map((file, index) => (
           <Card key={`${file.url}-${index}`} className="overflow-hidden">
             <CardContent className="p-4">
-              {renderFilePreview(file)}
+              {renderFilePreview(file, index)}
               
               <div className="mt-3 space-y-2">
                 <div className="flex items-start justify-between">
@@ -376,7 +385,6 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
         ))}
       </div>
 
-      {/* Metadata Dialog */}
       <Dialog open={!!metadataFile} onOpenChange={(open) => !open && setMetadataFile(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>

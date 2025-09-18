@@ -2,10 +2,8 @@ import { copy, BlobAccessError } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 
 export async function PUT(request: Request) {
-  // Create AbortController for this request
   const abortController = new AbortController();
   
-  // Handle request timeout (30 seconds)
   const timeoutId = setTimeout(() => {
     abortController.abort();
   }, 30000);
@@ -16,7 +14,6 @@ export async function PUT(request: Request) {
     const fromUrl = form.get('fromUrl') as string;
     const toPathname = form.get('toPathname') as string;
     
-    // Extract optional parameters from form data
     const contentType = form.get('contentType') as string | null;
     const addRandomSuffix = form.get('addRandomSuffix') === 'true';
     const cacheControlMaxAge = form.get('cacheControlMaxAge') ? 
@@ -30,7 +27,6 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Copy the blob following SDK pattern exactly
     const blob = await copy(fromUrl, toPathname, {
       access: 'public',
       contentType: contentType || undefined,
@@ -50,15 +46,13 @@ export async function PUT(request: Request) {
     let statusCode = 500;
 
     if (error instanceof BlobAccessError) {
-      // Handle known Vercel Blob errors
       errorMessage = `Blob access error: ${error.message}`;
-      statusCode = 403; // Access forbidden
+      statusCode = 403;
     } else if (error instanceof Error) {
       errorMessage = error.message;
-      // Check if it's an abort error
       if (error.name === 'AbortError') {
         errorMessage = 'Copy operation was cancelled';
-        statusCode = 499; // Client closed request
+        statusCode = 499;
       }
     }
 

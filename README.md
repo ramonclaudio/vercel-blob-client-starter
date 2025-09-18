@@ -124,7 +124,16 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 - ✅ **Stale-while-revalidate** for instant responses with background updates
 - ✅ **Static asset caching** - 1 year immutable cache for JS/CSS
 - ✅ **Blob storage edge cache** - 90 days for uploaded content
-- ✅ **Hobby plan optimized** - Reduces transfer costs by ~60-70%
+
+### Image Optimization
+- ✅ **Next.js Image component** for automatic optimization
+- ✅ **WebP conversion** - 25-35% smaller than JPEG
+- ✅ **4 responsive breakpoints** - Reduced to stay within 5K transformations/month
+- ✅ **Lazy loading** with blur placeholder for smooth UX
+- ✅ **Fixed quality (75)** - Consistent caching to minimize transformations
+- ✅ **31-day cache TTL** - Vercel recommended maximum
+- ✅ **Skip small images** - Unoptimized for files < 10KB
+- ✅ **Single format** - WebP only to reduce transformation count by 50%
 
 ## 🏗 Project Structure
 
@@ -153,7 +162,8 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 │   ├── useBlobMetadata.ts         # Metadata retrieval
 │   └── useListBlobs.ts            # Blob listing with pagination
 ├── lib/
-│   └── utils.ts                   # Utility functions
+│   ├── utils.ts                   # Utility functions
+│   └── image-optimization.ts      # Image optimization utilities
 └── middleware.ts                  # Geo-adaptive caching & security headers
 ```
 

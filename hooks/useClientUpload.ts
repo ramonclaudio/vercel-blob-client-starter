@@ -44,7 +44,6 @@ export function useClientUpload() {
     file: File,
     options: UploadOptions = {}
   ): Promise<PutBlobResult> => {
-    // Reset state
     setUploadState({
       isUploading: true,
       progress: null,
@@ -52,20 +51,16 @@ export function useClientUpload() {
       result: null,
     });
 
-    // Create abort controller for this upload
     abortControllerRef.current = new AbortController();
 
     try {
-      // Validate file size
       if (options.maxSize && file.size > options.maxSize) {
         throw new Error(`File size ${(file.size / 1024 / 1024).toFixed(2)}MB exceeds maximum allowed size of ${(options.maxSize / 1024 / 1024).toFixed(2)}MB`);
       }
 
-      // Validate file type
       if (options.allowedTypes && options.allowedTypes.length > 0) {
         const isAllowed = options.allowedTypes.some(type => {
           if (type.endsWith('/*')) {
-            // Wildcard type like 'image/*'
             return file.type.startsWith(type.slice(0, -1));
           }
           return file.type === type;
@@ -76,14 +71,12 @@ export function useClientUpload() {
         }
       }
 
-      // Prepare client payload
       const clientPayload = JSON.stringify({
         originalName: file.name,
         size: file.size,
         type: file.type,
         lastModified: file.lastModified,
         ...options.clientPayload,
-        // Pass upload options to the server
         maxSize: options.maxSize,
         additionalTypes: options.allowedTypes,
         addRandomSuffix: options.addRandomSuffix,
@@ -92,11 +85,8 @@ export function useClientUpload() {
         validityMinutes: options.validityMinutes,
       });
 
-      // Handle folder path - prepend to filename if specified
       const fileName = options.folderPath ? `${options.folderPath}/${file.name}` : file.name;
 
-      // Upload the file
-      // Auto-enable multipart for files >100MB as recommended by docs
       const shouldUseMultipart = options.multipart ?? (file.size > 100 * 1024 * 1024);
       
       const result = await upload(fileName, file, {
@@ -114,7 +104,6 @@ export function useClientUpload() {
         },
       });
 
-      // Upload successful
       setUploadState({
         isUploading: false,
         progress: { loaded: file.size, total: file.size, percentage: 100 },
@@ -126,9 +115,8 @@ export function useClientUpload() {
 
     } catch (error) {
       let errorMessage = 'Upload failed';
-      
+
       if (error instanceof BlobAccessError) {
-        // Handle known Vercel Blob errors
         errorMessage = `Blob access error: ${error.message}`;
       } else if (error instanceof Error) {
         errorMessage = error.message;
@@ -160,12 +148,10 @@ export function useClientUpload() {
     });
 
     try {
-      // Upload files sequentially to avoid overwhelming the server
       for (let i = 0; i < files.length; i++) {
         try {
           const result = await uploadFile(files[i], {
             ...options,
-            // Don't reset state for individual files in bulk upload
           });
           results.push(result);
         } catch (error) {
@@ -181,7 +167,7 @@ export function useClientUpload() {
         isUploading: false,
         progress: { loaded: files.length, total: files.length, percentage: 100 },
         error: null,
-        result: null, // For bulk uploads, results are returned directly
+        result: null,
       });
 
       return results;

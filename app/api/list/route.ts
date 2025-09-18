@@ -2,10 +2,8 @@ import { list, BlobAccessError } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
-  // Create AbortController for this request
   const abortController = new AbortController();
   
-  // Handle request timeout (30 seconds)
   const timeoutId = setTimeout(() => {
     abortController.abort();
   }, 30000);
@@ -13,13 +11,11 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Extract query parameters following SDK specification
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined;
     const prefix = searchParams.get('prefix') || undefined;
     const cursor = searchParams.get('cursor') || undefined;
     const mode = searchParams.get('mode') as 'expanded' | 'folded' | undefined;
 
-    // List blobs following SDK pattern exactly
     const result = await list({
       limit,
       prefix,
@@ -36,10 +32,9 @@ export async function GET(request: Request) {
       folders: 'folders' in result ? result.folders : undefined,
     }, {
       headers: {
-        // Cache blob lists for 30 seconds, stale-while-revalidate for 5 minutes
         'Cache-Control': 'public, max-age=0, s-maxage=30, stale-while-revalidate=300',
         'CDN-Cache-Control': 'public, max-age=30, stale-while-revalidate=300',
-        'Vercel-CDN-Cache-Control': 'public, max-age=60', // Longer cache for Vercel CDN
+        'Vercel-CDN-Cache-Control': 'public, max-age=60',
       }
     });
 
@@ -51,15 +46,13 @@ export async function GET(request: Request) {
     let statusCode = 500;
 
     if (error instanceof BlobAccessError) {
-      // Handle known Vercel Blob errors
       errorMessage = `Blob access error: ${error.message}`;
-      statusCode = 403; // Access forbidden
+      statusCode = 403;
     } else if (error instanceof Error) {
       errorMessage = error.message;
-      // Check if it's an abort error
       if (error.name === 'AbortError') {
         errorMessage = 'List operation was cancelled';
-        statusCode = 499; // Client closed request
+        statusCode = 499;
       }
     }
 

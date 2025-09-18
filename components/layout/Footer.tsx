@@ -14,7 +14,6 @@ import {
 export function Footer() {
   const pathname = usePathname();
 
-  // Generate breadcrumb items from pathname
   const generateBreadcrumbs = () => {
     const segments = pathname.split('/').filter(Boolean);
     const breadcrumbs: Array<{ label: string; href: string; isLast?: boolean }> = [
@@ -26,7 +25,6 @@ export function Footer() {
       currentPath += `/${segment}`;
       const isLast = index === segments.length - 1;
       
-      // Format segment for display
       const label = segment
         .split('-')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -47,7 +45,6 @@ export function Footer() {
   return (
     <footer className="border-t border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto max-w-screen-xl px-4 xl:px-0">
-        {/* Breadcrumbs */}
         <div className="py-4 border-b border-border/20">
           <Breadcrumb>
             <BreadcrumbList>
@@ -69,9 +66,7 @@ export function Footer() {
           </Breadcrumb>
         </div>
 
-        {/* Footer Content */}
         <div className="py-8 grid grid-cols-1 md:grid-cols-3 gap-8 overflow-hidden">
-          {/* About Section */}
           <div className="space-y-4 min-w-0">
             <h3 className="text-lg font-semibold break-words">Vercel Blob Client Starter</h3>
             <p className="text-sm text-muted-foreground leading-relaxed break-words">
@@ -87,7 +82,6 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
           <div className="space-y-4 min-w-0">
             <h3 className="text-lg font-semibold break-words">Quick Links</h3>
             <div className="space-y-2">
@@ -122,7 +116,6 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Features */}
           <div className="space-y-4 min-w-0">
             <h3 className="text-lg font-semibold break-words">Features</h3>
             <div className="space-y-2">
@@ -145,7 +138,6 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Copyright */}
         <div className="py-4 border-t border-border/20 flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0">
           <div className="text-sm text-muted-foreground">
             © 2025 Vercel Blob Client Starter Kit

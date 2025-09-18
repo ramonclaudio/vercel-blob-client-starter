@@ -118,7 +118,6 @@ export function UploadZone({
       onUploadError?.(errorMessage);
     }
 
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
