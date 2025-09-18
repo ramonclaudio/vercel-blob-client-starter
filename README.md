@@ -124,16 +124,16 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 - ✅ **Stale-while-revalidate** for instant responses with background updates
 - ✅ **Static asset caching** - 1 year immutable cache for JS/CSS
 - ✅ **Blob storage edge cache** - 90 days for uploaded content
-- ✅ **Hobby plan optimized** - Reduces transfer costs by ~60-70%
 
 ### Image Optimization
 - ✅ **Next.js Image component** for automatic optimization
-- ✅ **WebP/AVIF conversion** - 50-80% smaller than JPEG
-- ✅ **Responsive sizing** - 8 device breakpoints for perfect fit
+- ✅ **WebP conversion** - 25-35% smaller than JPEG
+- ✅ **4 responsive breakpoints** - Reduced to stay within 5K transformations/month
 - ✅ **Lazy loading** with blur placeholder for smooth UX
-- ✅ **Smart quality settings** - Adaptive based on image importance
-- ✅ **1 year cache** for blob images with unique URLs
-- ✅ **Automatic format selection** based on browser support
+- ✅ **Fixed quality (75)** - Consistent caching to minimize transformations
+- ✅ **31-day cache TTL** - Vercel recommended maximum
+- ✅ **Skip small images** - Unoptimized for files < 10KB
+- ✅ **Single format** - WebP only to reduce transformation count by 50%
 
 ## 🏗 Project Structure
 
