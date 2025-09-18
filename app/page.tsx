@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Upload, Image as ImageIcon, FileText, Settings, Zap, Shield, Globe, Images } from "lucide-react";
+import type { WebApplication, WithContext } from 'schema-dts';
 
 export default function Home() {
   const features = [
@@ -57,8 +58,50 @@ export default function Home() {
     }
   ];
 
+  // WebApplication JSON-LD Schema for Homepage
+  const webAppSchema: WithContext<WebApplication> = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'Vercel Blob Upload Demo',
+    description: 'Interactive demo showcasing Vercel Blob client-side upload capabilities with drag & drop interface',
+    url: typeof window !== 'undefined' ? window.location.origin : 'https://vercel-blob-client-starter.vercel.app',
+    applicationCategory: 'BusinessApplication',
+    browserRequirements: 'Requires JavaScript. Requires HTML5.',
+    operatingSystem: 'Web Browser',
+    featureList: [
+      'Drag & Drop File Upload',
+      'Real-time Progress Tracking',
+      'Gallery Management',
+      'Advanced Upload Configuration',
+      'Multi-format Support',
+      'Copy & Delete Operations'
+    ],
+    screenshot: 'https://vercel-blob-client-starter.vercel.app/opengraph-image',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD'
+    },
+    creator: {
+      '@type': 'Organization',
+      name: 'Vercel',
+      url: 'https://vercel.com'
+    },
+    inLanguage: 'en-US',
+    isAccessibleForFree: true,
+    accessibilityAPI: ['ARIA'],
+    accessibilityControl: ['fullKeyboardControl', 'fullMouseControl', 'fullTouchControl']
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+      {/* WebApplication JSON-LD Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(webAppSchema).replace(/</g, '\\u003c'),
+        }}
+      />
       <section className="pt-12 lg:pt-20 pb-8 lg:pb-12">
         <div className="text-center mb-8 lg:mb-10">
           <div className="flex flex-col md:flex-row items-center justify-center mb-6">

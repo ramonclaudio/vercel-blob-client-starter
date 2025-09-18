@@ -1,6 +1,6 @@
 # Vercel Blob Client-Side Starter
 
-Complete client-side Vercel Blob starter with Next.js 15 & React 19. Features: drag & drop uploads, progress tracking, multipart support, advanced configuration, file gallery, copy/delete operations, and 100% SDK compliance. Built with TypeScript, Tailwind CSS v4, and shadcn/ui components.
+Complete client-side Vercel Blob starter with Next.js 15 & React 19. Features: drag & drop uploads, progress tracking, multipart support, advanced configuration, file gallery, copy/delete operations, professional SEO & social sharing, and 100% SDK compliance. Built with TypeScript, Tailwind CSS v4, and shadcn/ui components.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/RMNCLDYO/vercel-blob-client-starter&env=BLOB_READ_WRITE_TOKEN&envDescription=Vercel%20Blob%20storage%20token&envLink=https://vercel.com/docs/storage/vercel-blob)
 
@@ -11,6 +11,9 @@ Complete client-side Vercel Blob starter with Next.js 15 & React 19. Features: d
 - **Multipart Support** - Automatic chunking for large files (>100MB)
 - **Advanced Configuration** - Complete control over all upload options
 - **File Gallery** - Preview, copy, delete, and manage all your blobs
+- **Professional SEO** - Dynamic OpenGraph images, Twitter cards, and metadata
+- **Social Sharing** - Auto-generated OG images with proper meta tags
+- **Search Engine Ready** - Dynamic robots.txt and sitemap.xml generation
 - **Responsive Design** - Works perfectly on all screen sizes
 - **Modern UI** - Built with shadcn/ui and Tailwind CSS v4
 - **Cancel Uploads** - Full abort signal support for all operations
@@ -135,6 +138,16 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 - ✅ **Skip small images** - Unoptimized for files < 10KB
 - ✅ **Single format** - WebP only to reduce transformation count by 50%
 
+### SEO & Social Sharing
+- ✅ **Dynamic OpenGraph images** using `next/og` with JSX and CSS
+- ✅ **Twitter Card optimization** with custom 1200x600 images
+- ✅ **Professional metadata** with comprehensive meta tags
+- ✅ **Search engine verification** ready (Google, Bing, Yandex)
+- ✅ **Dynamic robots.txt** with environment-aware configuration
+- ✅ **Dynamic sitemap.xml** with automatic URL generation
+- ✅ **Social media ready** for Facebook, LinkedIn, Twitter sharing
+- ✅ **Extensionless image URLs** following NextJS 15 best practices
+
 ## 🏗 Project Structure
 
 ```
@@ -145,11 +158,24 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 │   │   ├── delete/route.ts        # Blob deletion
 │   │   ├── metadata/route.ts      # Blob metadata retrieval
 │   │   └── list/route.ts          # Blob listing with pagination
-│   ├── upload/page.tsx            # Main upload interface
-│   ├── gallery/page.tsx           # File gallery with all operations
-│   └── layout.tsx                 # Root layout with Toaster
+│   ├── upload/
+│   │   ├── page.tsx               # Main upload interface
+│   │   └── error.tsx              # Upload page error boundary
+│   ├── gallery/
+│   │   ├── page.tsx               # File gallery with all operations
+│   │   └── error.tsx              # Gallery page error boundary
+│   ├── robots.txt/route.ts        # Dynamic robots.txt generation
+│   ├── sitemap.xml/route.ts       # Dynamic sitemap.xml generation
+│   ├── opengraph-image.tsx        # Dynamic OpenGraph image (1200x630)
+│   ├── twitter-image.tsx          # Dynamic Twitter card image (1200x600)
+│   ├── global-error.tsx           # Global error boundary
+│   ├── not-found.tsx              # Custom 404 page
+│   ├── favicon.ico                # Site favicon
+│   └── layout.tsx                 # Root layout with enhanced metadata
 ├── components/
 │   ├── ui/                        # shadcn/ui components
+│   │   ├── error-boundary.tsx     # Reusable error boundary component
+│   │   └── error-display.tsx      # Error display with retry functionality
 │   ├── upload/
 │   │   ├── UploadZone.tsx         # Drag & drop component
 │   │   └── AdvancedConfig.tsx     # Configuration panel
@@ -163,7 +189,8 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 │   └── useListBlobs.ts            # Blob listing with pagination
 ├── lib/
 │   ├── utils.ts                   # Utility functions
-│   └── image-optimization.ts      # Image optimization utilities
+│   ├── image-optimization.ts      # Image optimization utilities
+│   └── error-recovery.ts          # Advanced error recovery & retry logic
 └── middleware.ts                  # Geo-adaptive caching & security headers
 ```
 
@@ -185,18 +212,71 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 Create a `.env.local` file with:
 
 ```env
+# Required: Vercel Blob Storage
 BLOB_READ_WRITE_TOKEN=your_blob_token_here
+
+# Optional: SEO & Search Engine Verification (for production)
+GOOGLE_SITE_VERIFICATION=your_google_verification_code
+YANDEX_VERIFICATION=your_yandex_verification_code
+BING_SITE_VERIFICATION=your_bing_verification_code
 ```
 
-Get your token from the [Vercel Storage Dashboard](https://vercel.com/dashboard/stores).
+**Required:**
+- Get your Blob token from the [Vercel Storage Dashboard](https://vercel.com/dashboard/stores)
+
+**Optional SEO Verification:**
+- **Google**: [Google Search Console](https://search.google.com/search-console) → Property → Settings → Ownership verification
+- **Bing**: [Bing Webmaster Tools](https://www.bing.com/webmasters) → Add Site → HTML Meta Tag method
+- **Yandex**: [Yandex Webmaster](https://webmaster.yandex.com) → Add Site → HTML Meta Tag method
+
+## 🧪 Testing SEO Features
+
+### Generated Images & Metadata
+```bash
+# Build and start production server
+npm run build
+npm start
+
+# Test generated images
+curl -I http://localhost:3000/opengraph-image    # 1200x630 PNG
+curl -I http://localhost:3000/twitter-image     # 1200x600 PNG
+
+# Test SEO files
+curl http://localhost:3000/robots.txt           # Dynamic robots.txt
+curl http://localhost:3000/sitemap.xml          # Dynamic sitemap.xml
+```
+
+### Social Media Preview Tools
+Test your OG images and metadata with these validators:
+- **Twitter**: [Card Validator](https://cards-dev.twitter.com/validator)
+- **Facebook**: [Sharing Debugger](https://developers.facebook.com/tools/debug/)
+- **LinkedIn**: [Post Inspector](https://www.linkedin.com/post-inspector/)
+- **Discord**: Paste your URL in any Discord channel for preview
+
+### Generated Meta Tags
+View source on your deployed site to see the auto-generated meta tags:
+```html
+<meta property="og:image" content="https://your-domain.com/opengraph-image" />
+<meta name="twitter:image" content="https://your-domain.com/twitter-image" />
+<meta name="twitter:card" content="summary_large_image" />
+<!-- + comprehensive SEO metadata -->
+```
 
 ## 📚 Learn More
 
+### Core Technologies
 - [Vercel Blob Documentation](https://vercel.com/docs/storage/vercel-blob)
 - [Client-Side Uploads Guide](https://vercel.com/docs/storage/vercel-blob/client-uploads)
 - [Next.js App Router](https://nextjs.org/docs/app)
 - [shadcn/ui Components](https://ui.shadcn.com)
 - [Tailwind CSS v4](https://tailwindcss.com)
+
+### SEO & Metadata
+- [Next.js Metadata API](https://nextjs.org/docs/app/building-your-application/optimizing/metadata)
+- [OpenGraph Image Generation](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/opengraph-image)
+- [Dynamic OG Images with `next/og`](https://vercel.com/docs/og-image-generation)
+- [Twitter Cards Documentation](https://developer.twitter.com/en/docs/twitter-for-websites/cards)
+- [robots.txt Best Practices](https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt)
 
 ## 🤝 Contributing
 

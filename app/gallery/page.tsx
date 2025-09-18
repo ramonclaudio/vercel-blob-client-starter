@@ -11,10 +11,10 @@ import { useListBlobs } from '@/hooks/useListBlobs';
 import { useDeleteBlob } from '@/hooks/useDeleteBlob';
 import { useCopyBlob } from '@/hooks/useCopyBlob';
 import { useBlobMetadata } from '@/hooks/useBlobMetadata';
-import { 
-  Search, 
-  RefreshCw, 
-  Folder, 
+import {
+  Search,
+  RefreshCw,
+  Folder,
   FolderOpen,
   Grid3X3,
   List,
@@ -28,6 +28,7 @@ import {
   Files,
   MoreHorizontal
 } from 'lucide-react';
+import type { HowTo, WithContext } from 'schema-dts';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -240,8 +241,75 @@ export default function GalleryPage() {
 
   const breadcrumbs = currentFolder ? currentFolder.split('/').filter(Boolean) : [];
 
+  // HowTo JSON-LD Schema for Gallery Management
+  const galleryHowToSchema: WithContext<HowTo> = {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: 'How to Manage Files in Vercel Blob Gallery',
+    description: 'Learn to browse, search, copy, delete, and organize files in the Vercel Blob file gallery interface',
+    image: 'https://vercel-blob-client-starter.vercel.app/opengraph-image',
+    totalTime: 'PT3M',
+    estimatedCost: {
+      '@type': 'MonetaryAmount',
+      currency: 'USD',
+      value: '0'
+    },
+    tool: [
+      {
+        '@type': 'HowToTool',
+        name: 'Web Browser',
+        description: 'Modern web browser with JavaScript support'
+      }
+    ],
+    step: [
+      {
+        '@type': 'HowToStep',
+        name: 'Browse Files',
+        text: 'View all uploaded files in grid or list format with folder navigation support',
+        image: 'https://vercel-blob-client-starter.vercel.app/opengraph-image'
+      },
+      {
+        '@type': 'HowToStep',
+        name: 'Search and Filter',
+        text: 'Use the search bar to find specific files by name or filter by folder path',
+        image: 'https://vercel-blob-client-starter.vercel.app/opengraph-image'
+      },
+      {
+        '@type': 'HowToStep',
+        name: 'Preview Files',
+        text: 'Click on files to preview images and view file details in an expanded view',
+        image: 'https://vercel-blob-client-starter.vercel.app/opengraph-image'
+      },
+      {
+        '@type': 'HowToStep',
+        name: 'Copy File URLs',
+        text: 'Copy public URLs of files to share or embed them in other applications',
+        image: 'https://vercel-blob-client-starter.vercel.app/opengraph-image'
+      },
+      {
+        '@type': 'HowToStep',
+        name: 'Delete Files',
+        text: 'Remove unwanted files from your blob storage with confirmation dialogs',
+        image: 'https://vercel-blob-client-starter.vercel.app/opengraph-image'
+      },
+      {
+        '@type': 'HowToStep',
+        name: 'View Metadata',
+        text: 'Access detailed file information including size, upload date, and technical metadata',
+        image: 'https://vercel-blob-client-starter.vercel.app/opengraph-image'
+      }
+    ]
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
+      {/* Gallery HowTo JSON-LD Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(galleryHowToSchema).replace(/</g, '\\u003c'),
+        }}
+      />
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Blob Gallery</h1>
         <p className="text-muted-foreground">

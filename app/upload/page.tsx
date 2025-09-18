@@ -13,6 +13,7 @@ import { type UploadOptions } from '@/hooks/useClientUpload';
 import { useDeleteBlob } from '@/hooks/useDeleteBlob';
 import { Trash2, Upload, Settings } from 'lucide-react';
 import { toast } from 'sonner';
+import type { HowTo, WithContext } from 'schema-dts';
 
 interface FileItem extends PutBlobResult {
   uploadedAt: string;
@@ -97,8 +98,75 @@ function UploadPageContent() {
     setUploadedFiles([]);
   };
 
+  // HowTo JSON-LD Schema for Upload Tutorial
+  const howToSchema: WithContext<HowTo> = {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: 'How to Upload Files with Vercel Blob',
+    description: 'Step-by-step guide to upload files using the Vercel Blob client-side upload interface with drag & drop functionality',
+    image: 'https://vercel-blob-client-starter.vercel.app/opengraph-image',
+    totalTime: 'PT2M',
+    estimatedCost: {
+      '@type': 'MonetaryAmount',
+      currency: 'USD',
+      value: '0'
+    },
+    supply: [
+      {
+        '@type': 'HowToSupply',
+        name: 'Files to upload (images, documents, videos, etc.)'
+      }
+    ],
+    tool: [
+      {
+        '@type': 'HowToTool',
+        name: 'Web Browser',
+        description: 'Modern web browser with JavaScript support'
+      }
+    ],
+    step: [
+      {
+        '@type': 'HowToStep',
+        name: 'Choose Upload Mode',
+        text: 'Select between Standard Upload for simple drag & drop or Advanced Configuration for custom options',
+        image: 'https://vercel-blob-client-starter.vercel.app/opengraph-image'
+      },
+      {
+        '@type': 'HowToStep',
+        name: 'Select Files',
+        text: 'Drag and drop files into the upload zone or click to browse and select files from your device',
+        image: 'https://vercel-blob-client-starter.vercel.app/opengraph-image'
+      },
+      {
+        '@type': 'HowToStep',
+        name: 'Configure Options (Advanced Mode)',
+        text: 'Set file type restrictions, size limits, cache control, and other advanced upload options',
+        image: 'https://vercel-blob-client-starter.vercel.app/opengraph-image'
+      },
+      {
+        '@type': 'HowToStep',
+        name: 'Monitor Progress',
+        text: 'Watch real-time upload progress with the ability to cancel uploads if needed',
+        image: 'https://vercel-blob-client-starter.vercel.app/opengraph-image'
+      },
+      {
+        '@type': 'HowToStep',
+        name: 'Manage Uploaded Files',
+        text: 'View uploaded files in the gallery, copy URLs, or delete files as needed',
+        image: 'https://vercel-blob-client-starter.vercel.app/opengraph-image'
+      }
+    ]
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
+      {/* HowTo JSON-LD Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(howToSchema).replace(/</g, '\\u003c'),
+        }}
+      />
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Vercel Blob Upload Demo</h1>
         <p className="text-muted-foreground">
