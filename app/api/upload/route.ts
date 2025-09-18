@@ -2,7 +2,6 @@ import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { BlobAccessError } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 
-// Use-case: uploading images for blog posts
 export async function POST(request: Request): Promise<NextResponse> {
   const body = (await request.json()) as HandleUploadBody;
 
@@ -19,14 +18,11 @@ export async function POST(request: Request): Promise<NextResponse> {
         // otherwise this could introduce security issues for your app
         // like allowing users to modify other users' posts
 
-        // Parse clientPayload if provided
         const payload = clientPayload ? JSON.parse(clientPayload) : {};
 
-        // Log multipart status for debugging
         console.log(`Upload request for ${pathname}, multipart: ${multipart}`);
 
         return {
-          // Allow common image, video, and document types
           allowedContentTypes: [
             'image/jpeg',
             'image/png',
@@ -40,27 +36,17 @@ export async function POST(request: Request): Promise<NextResponse> {
             'application/json',
             ...payload.additionalTypes || []
           ],
-          // Add random suffix to prevent conflicts
           addRandomSuffix: payload.addRandomSuffix ?? true,
-          // Set max file size (default 100MB, configurable via payload)
           maximumSizeInBytes: payload.maxSize || 100 * 1024 * 1024,
-          // Token valid for 1 hour (configurable via payload)
           validUntil: Date.now() + (payload.validityMinutes || 60) * 60 * 1000,
-          // Allow overwriting if specified
           allowOverwrite: payload.allowOverwrite ?? false,
           cacheControlMaxAge: payload.cacheControlMaxAge || 60 * 60 * 24 * 90,
-          // Callback URL for onUploadCompleted
-          // 1. VERCEL_BLOB_CALLBACK_URL (local development with ngrok)
-          // 2. VERCEL_BRANCH_URL (preview environments)
-          // 3. VERCEL_URL (preview fallback)
-          // 4. VERCEL_PROJECT_PRODUCTION_URL (production)
           callbackUrl: process.env.VERCEL_BLOB_CALLBACK_URL ||
                       process.env.VERCEL_BRANCH_URL ||
                       process.env.VERCEL_URL ||
                       process.env.VERCEL_PROJECT_PRODUCTION_URL,
-          // Include metadata in token payload
           tokenPayload: JSON.stringify({
-            uploadedBy: 'anonymous', // In real app, use authenticated user ID
+            uploadedBy: 'anonymous', // In prod use authenticated user ID
             uploadedAt: new Date().toISOString(),
             originalPayload: payload,
           }),
@@ -74,9 +60,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         console.log('blob upload completed', blob, tokenPayload);
 
         try {
-          // Run any logic after the file upload completed,
-          // If you've already validated the user and authorization prior, you can
-          // safely update your database
+          // Example: update a database record with the uploaded blob URL
         } catch (uploadError) {
           console.error('Upload completion error:', uploadError);
           throw new Error('Could not update post');
@@ -84,19 +68,23 @@ export async function POST(request: Request): Promise<NextResponse> {
       },
     });
 
-    return NextResponse.json(jsonResponse);
+    return NextResponse.json(jsonResponse, {
+      headers: {
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
+    });
   } catch (error) {
     if (error instanceof BlobAccessError) {
-      // handle a recognized error
       return NextResponse.json(
         { error: error.message },
-        { status: 400 }, // The webhook will retry 5 times waiting for a 200
+        { status: 400 },
       );
     } else {
-      // throw the error again if it's unknown
       return NextResponse.json(
         { error: error instanceof Error ? error.message : String(error) },
-        { status: 400 }, // The webhook will retry 5 times waiting for a 200
+        { status: 400 },
       );
     }
   }
