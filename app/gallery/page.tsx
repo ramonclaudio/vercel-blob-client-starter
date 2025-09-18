@@ -67,7 +67,6 @@ export default function GalleryPage() {
     }
   }, [refresh, currentFolder, displayMode]);
 
-  // Load initial data
   useEffect(() => {
     handleRefresh();
   }, [handleRefresh]);
@@ -117,7 +116,7 @@ export default function GalleryPage() {
     try {
       await deleteFile(file.url);
       toast.success(`Successfully deleted ${file.pathname.split('/').pop()}!`, { id: toastId });
-      await handleRefresh(); // Refresh the list
+      await handleRefresh();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Delete failed';
       toast.error(`Failed to delete file: ${errorMessage}`, { id: toastId });
@@ -137,7 +136,7 @@ export default function GalleryPage() {
         addRandomSuffix: true,
       });
       toast.success(`Successfully duplicated ${originalName}!`, { id: toastId });
-      await handleRefresh(); // Refresh the list
+      await handleRefresh();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Copy failed';
       toast.error(`Failed to duplicate file: ${errorMessage}`, { id: toastId });
@@ -188,27 +187,22 @@ export default function GalleryPage() {
   const getFileType = (pathname: string) => {
     const extension = pathname.split('.').pop()?.toLowerCase() || '';
     
-    // Image extensions
     if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'].includes(extension)) {
       return 'image';
     }
     
-    // Video extensions
     if (['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv', 'flv', 'm4v'].includes(extension)) {
       return 'video';
     }
     
-    // Audio extensions
     if (['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a', 'wma'].includes(extension)) {
       return 'audio';
     }
     
-    // PDF
     if (extension === 'pdf') {
       return 'pdf';
     }
     
-    // Text files
     if (['txt', 'md', 'json', 'xml', 'csv', 'log', 'yml', 'yaml'].includes(extension)) {
       return 'text';
     }
@@ -244,7 +238,6 @@ export default function GalleryPage() {
     }
   };
 
-  // Build breadcrumb navigation
   const breadcrumbs = currentFolder ? currentFolder.split('/').filter(Boolean) : [];
 
   return (
@@ -256,13 +249,11 @@ export default function GalleryPage() {
         </p>
       </div>
 
-      {/* Controls */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-lg">Browse Controls</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Breadcrumb Navigation */}
           <div className="flex items-center space-x-2 text-sm">
             <Button
               variant="ghost"
@@ -293,7 +284,6 @@ export default function GalleryPage() {
 
           <Separator />
 
-          {/* Search and Controls */}
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-64">
               <div className="flex gap-2">
@@ -342,7 +332,6 @@ export default function GalleryPage() {
         </CardContent>
       </Card>
 
-      {/* Status */}
       {error && (
         <Card className="mb-6 border-destructive">
           <CardContent className="p-4">
@@ -351,7 +340,6 @@ export default function GalleryPage() {
         </Card>
       )}
 
-      {/* Folders (in folded mode) */}
       {data?.folders && data.folders.length > 0 && (
         <Card className="mb-6">
           <CardHeader>
@@ -378,7 +366,6 @@ export default function GalleryPage() {
         </Card>
       )}
 
-      {/* Blobs */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -510,7 +497,6 @@ export default function GalleryPage() {
         </CardContent>
       </Card>
 
-      {/* Metadata Dialog */}
       <Dialog open={!!metadataFile} onOpenChange={(open) => !open && setMetadataFile(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
