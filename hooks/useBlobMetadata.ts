@@ -29,7 +29,6 @@ export function useBlobMetadata() {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const getMetadata = useCallback(async (url: string): Promise<BlobMetadata> => {
-    // Create abort controller for this metadata operation
     abortControllerRef.current = new AbortController();
 
     setMetadataState({
@@ -51,7 +50,6 @@ export function useBlobMetadata() {
 
       const metadata = await response.json();
 
-      // Convert uploadedAt string to Date object if needed
       if (typeof metadata.uploadedAt === 'string') {
         metadata.uploadedAt = new Date(metadata.uploadedAt);
       }
