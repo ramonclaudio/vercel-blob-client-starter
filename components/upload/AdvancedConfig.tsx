@@ -18,12 +18,12 @@ interface AdvancedConfigProps {
 
 export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfigProps) {
   const [config, setConfig] = useState<UploadOptions>({
-    maxSize: 100 * 1024 * 1024, // 100MB default
+    maxSize: 100 * 1024 * 1024,
     allowedTypes: [],
     addRandomSuffix: true,
     allowOverwrite: false,
-    cacheControlMaxAge: 60 * 60 * 24 * 30, // 30 days
-    validityMinutes: 60, // 1 hour
+    cacheControlMaxAge: 60 * 60 * 24 * 30,
+    validityMinutes: 60,
     multipart: false,
     clientPayload: {},
   });
@@ -115,7 +115,6 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* File Restrictions */}
           <div className="space-y-4">
             <div>
               <h3 className="text-lg font-medium mb-3">File Restrictions</h3>
@@ -164,7 +163,6 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
 
           <Separator />
 
-          {/* Upload Behavior */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Upload Behavior</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -211,7 +209,6 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
 
           <Separator />
 
-          {/* Caching & Timing */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Caching & Timing</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -253,7 +250,6 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
 
           <Separator />
 
-          {/* Organization */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Organization</h3>
             <div className="space-y-4">
@@ -307,7 +303,6 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
             </div>
           </div>
 
-          {/* Current Configuration Summary */}
           <div className="bg-muted/50 p-4 rounded-lg">
             <h4 className="font-medium mb-2">Current Configuration</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
