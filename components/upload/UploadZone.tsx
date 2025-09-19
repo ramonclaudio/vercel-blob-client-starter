@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useState, useRef, useMemo } from 'react';
 import { Upload, FileImage, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -129,21 +129,21 @@ export function UploadZone({
     }
   }, [disabled, isUploading]);
 
-  const formatFileSize = (bytes: number) => {
+  const formatFileSize = useMemo(() => (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  }, []);
 
-  const getAcceptedTypes = () => {
+  const getAcceptedTypes = useMemo(() => {
     if (accept) return accept;
     if (options.allowedTypes) {
       return options.allowedTypes.join(',');
     }
     return '*/*';
-  };
+  }, [accept, options.allowedTypes]);
 
   return (
     <div className={`w-full ${className}`}>
@@ -218,7 +218,7 @@ export function UploadZone({
         <input
           ref={fileInputRef}
           type="file"
-          accept={getAcceptedTypes()}
+          accept={getAcceptedTypes}
           multiple={multiple}
           onChange={handleFileSelect}
           className="hidden"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useId, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,9 +33,18 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
   const [customPayload, setCustomPayload] = useState('');
   const [contentType, setContentType] = useState('');
 
-  const updateConfig = (updates: Partial<UploadOptions>) => {
-    const newConfig = { 
-      ...config, 
+  // Generate unique IDs for accessibility (React 19 useId compliance)
+  const maxSizeId = useId();
+  const allowedTypesId = useId();
+  const cacheControlId = useId();
+  const tokenValidityId = useId();
+  const folderPathId = useId();
+  const contentTypeId = useId();
+  const customPayloadId = useId();
+
+  const updateConfig = useCallback((updates: Partial<UploadOptions>) => {
+    const newConfig = {
+      ...config,
       ...updates,
       folderPath: folderPath || undefined,
       contentType: contentType || undefined,
@@ -49,9 +58,9 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
     };
     setConfig(newConfig);
     onConfigChange(newConfig);
-  };
+  }, [config, folderPath, contentType, customPayload, onConfigChange]);
 
-  const resetToDefaults = () => {
+  const resetToDefaults = useCallback(() => {
     const defaultConfig: UploadOptions = {
       maxSize: 100 * 1024 * 1024,
       allowedTypes: [],
@@ -68,31 +77,31 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
     setCustomPayload('');
     setContentType('');
     onConfigChange(defaultConfig);
-  };
+  }, [onConfigChange]);
 
-  const handleTypesChange = (value: string) => {
+  const handleTypesChange = useCallback((value: string) => {
     setCustomTypes(value);
     const types = value
       .split(',')
       .map(type => type.trim())
       .filter(type => type.length > 0);
     updateConfig({ allowedTypes: types.length > 0 ? types : [] });
-  };
+  }, [updateConfig]);
 
-  const formatBytes = (bytes: number) => {
+  const formatBytes = useMemo(() => (bytes: number) => {
     if (bytes === 0) return '0 B';
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-  };
+  }, []);
 
-  const formatDuration = (seconds: number) => {
+  const formatDuration = useMemo(() => (seconds: number) => {
     if (seconds < 60) return `${seconds}s`;
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
     return `${Math.floor(seconds / 86400)}d`;
-  };
+  }, []);
 
   return (
     <div className={className}>
@@ -120,10 +129,10 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
               <h3 className="text-lg font-medium mb-3">File Restrictions</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="maxSize">Maximum File Size</Label>
+                  <Label htmlFor={maxSizeId}>Maximum File Size</Label>
                   <div className="flex items-center space-x-2">
                     <Input
-                      id="maxSize"
+                      id={maxSizeId}
                       type="number"
                       value={Math.floor((config.maxSize || 0) / (1024 * 1024))}
                       onChange={(e) => updateConfig({ maxSize: parseInt(e.target.value) * 1024 * 1024 })}
@@ -137,9 +146,9 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="allowedTypes">Allowed File Types</Label>
+                  <Label htmlFor={allowedTypesId}>Allowed File Types</Label>
                   <Input
-                    id="allowedTypes"
+                    id={allowedTypesId}
                     placeholder="image/*, video/mp4, application/pdf"
                     value={customTypes}
                     onChange={(e) => handleTypesChange(e.target.value)}
@@ -213,10 +222,10 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
             <h3 className="text-lg font-medium">Caching & Timing</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="cacheControl">Cache Control Max Age</Label>
+                <Label htmlFor={cacheControlId}>Cache Control Max Age</Label>
                 <div className="flex items-center space-x-2">
                   <Input
-                    id="cacheControl"
+                    id={cacheControlId}
                     type="number"
                     value={Math.floor((config.cacheControlMaxAge || 0) / 3600)}
                     onChange={(e) => updateConfig({ cacheControlMaxAge: parseInt(e.target.value) * 3600 })}
@@ -230,10 +239,10 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="tokenValidity">Token Validity</Label>
+                <Label htmlFor={tokenValidityId}>Token Validity</Label>
                 <div className="flex items-center space-x-2">
                   <Input
-                    id="tokenValidity"
+                    id={tokenValidityId}
                     type="number"
                     value={config.validityMinutes || 60}
                     onChange={(e) => updateConfig({ validityMinutes: parseInt(e.target.value) })}
@@ -254,9 +263,9 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
             <h3 className="text-lg font-medium">Organization</h3>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="folderPath">Folder Path</Label>
+                <Label htmlFor={folderPathId}>Folder Path</Label>
                 <Input
-                  id="folderPath"
+                  id={folderPathId}
                   placeholder="uploads/images"
                   value={folderPath}
                   onChange={(e) => {
@@ -270,9 +279,9 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="contentType">Content Type Override</Label>
+                <Label htmlFor={contentTypeId}>Content Type Override</Label>
                 <Input
-                  id="contentType"
+                  id={contentTypeId}
                   placeholder="image/jpeg, text/plain, application/pdf"
                   value={contentType}
                   onChange={(e) => {
@@ -286,9 +295,9 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="customPayload">Custom Payload (JSON)</Label>
+                <Label htmlFor={customPayloadId}>Custom Payload (JSON)</Label>
                 <Input
-                  id="customPayload"
+                  id={customPayloadId}
                   placeholder={'{"category": "profile", "userId": "123"}'}
                   value={customPayload}
                   onChange={(e) => {
