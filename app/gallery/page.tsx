@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Form from 'next/form';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SearchButton } from '@/components/ui/search-button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,8 +14,8 @@ import { useListBlobs } from '@/hooks/useListBlobs';
 import { useDeleteBlob } from '@/hooks/useDeleteBlob';
 import { useCopyBlob } from '@/hooks/useCopyBlob';
 import { useBlobMetadata } from '@/hooks/useBlobMetadata';
+import { MetadataDialog } from '@/components/gallery/MetadataDialog';
 import {
-  Search,
   RefreshCw,
   Folder,
   FolderOpen,
@@ -35,9 +38,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { BlobItem } from '@/hooks/useListBlobs';
 
+
 export default function GalleryPage() {
+  const searchParams = useSearchParams();
   const [currentFolder, setCurrentFolder] = useState<string>('');
-  const [searchPrefix, setSearchPrefix] = useState<string>('');
+  const searchPrefix = searchParams.get('prefix') || '';
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [displayMode, setDisplayMode] = useState<'expanded' | 'folded'>('folded');
   const [selectedFile, setSelectedFile] = useState<BlobItem | null>(null);
@@ -58,22 +63,6 @@ export default function GalleryPage() {
 
   const handleRefresh = useCallback(async () => {
     try {
-      await refresh({
-        prefix: currentFolder || undefined,
-        mode: displayMode,
-        limit: 50,
-      });
-    } catch {
-      toast.error('Failed to load blobs');
-    }
-  }, [refresh, currentFolder, displayMode]);
-
-  useEffect(() => {
-    handleRefresh();
-  }, [handleRefresh]);
-
-  const handleSearch = async () => {
-    try {
       const effectivePrefix = searchPrefix.trim() || currentFolder || undefined;
       await refresh({
         prefix: effectivePrefix,
@@ -81,13 +70,16 @@ export default function GalleryPage() {
         limit: 50,
       });
     } catch {
-      toast.error('Failed to search blobs');
+      toast.error('Failed to load blobs');
     }
-  };
+  }, [refresh, searchPrefix, currentFolder, displayMode]);
+
+  useEffect(() => {
+    handleRefresh();
+  }, [handleRefresh]);
 
   const handleFolderNavigation = async (folderPath: string) => {
     setCurrentFolder(folderPath);
-    setSearchPrefix('');
     try {
       await refresh({
         prefix: folderPath || undefined,
@@ -101,8 +93,9 @@ export default function GalleryPage() {
 
   const handleLoadMore = async () => {
     try {
+      const effectivePrefix = searchPrefix.trim() || currentFolder || undefined;
       await loadMore({
-        prefix: currentFolder || undefined,
+        prefix: effectivePrefix,
         mode: displayMode,
         limit: 50,
       });
@@ -241,7 +234,6 @@ export default function GalleryPage() {
 
   const breadcrumbs = currentFolder ? currentFolder.split('/').filter(Boolean) : [];
 
-  // HowTo JSON-LD Schema for Gallery Management
   const galleryHowToSchema: WithContext<HowTo> = {
     '@context': 'https://schema.org',
     '@type': 'HowTo',
@@ -303,7 +295,6 @@ export default function GalleryPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
-      {/* Gallery HowTo JSON-LD Schema */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -354,17 +345,14 @@ export default function GalleryPage() {
 
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-64">
-              <div className="flex gap-2">
+              <Form action="/gallery" className="flex gap-2">
                 <Input
+                  name="prefix"
                   placeholder="Search by prefix..."
-                  value={searchPrefix}
-                  onChange={(e) => setSearchPrefix(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  defaultValue={searchPrefix}
                 />
-                <Button onClick={handleSearch} disabled={isLoading}>
-                  <Search className="w-4 h-4" />
-                </Button>
-              </div>
+                <SearchButton />
+              </Form>
             </div>
 
             <div className="flex gap-2">
@@ -463,7 +451,7 @@ export default function GalleryPage() {
               </div>
             </div>
           ) : (
-            <div className={viewMode === 'grid' 
+            <div className={viewMode === 'grid'
               ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
               : "space-y-2"
             }>
@@ -504,7 +492,7 @@ export default function GalleryPage() {
                       </div>
                     )}
                   </CardContent>
-                  
+
                   <div className="px-4 pb-4 flex flex-wrap gap-2">
                     <Dialog>
                       <DialogTrigger asChild>
@@ -548,7 +536,7 @@ export default function GalleryPage() {
                           <Files className="w-4 h-4 mr-2" />
                           Duplicate
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleDeleteFile(file)}
                           className="text-destructive"
                         >
@@ -565,85 +553,16 @@ export default function GalleryPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!metadataFile} onOpenChange={(open) => !open && setMetadataFile(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center">
-              <Info className="w-5 h-5 mr-2" />
-              Blob Metadata
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {metadataFile && (
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">File Information</h4>
-                <div className="text-sm space-y-1">
-                  <div><span className="font-medium">Filename:</span> {metadataFile.pathname.split('/').pop()}</div>
-                  <div><span className="font-medium">Full Path:</span> {metadataFile.pathname}</div>
-                </div>
-              </div>
-            )}
-
-            {isLoadingMetadata && (
-              <div className="flex items-center justify-center p-8">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                <span className="ml-3">Loading metadata...</span>
-              </div>
-            )}
-
-            {metadataError && (
-              <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg">
-                <h4 className="font-medium text-destructive mb-2">Error</h4>
-                <p className="text-sm text-destructive">{metadataError}</p>
-              </div>
-            )}
-
-            {metadata && !isLoadingMetadata && (
-              <div className="space-y-4">
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-3">Blob Details</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium text-muted-foreground">Size:</span>
-                      <div className="font-mono">{formatFileSize(metadata.size)}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Content Type:</span>
-                      <div className="font-mono break-all">{metadata.contentType}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Uploaded At:</span>
-                      <div className="font-mono">{formatDate(metadata.uploadedAt.toISOString())}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Cache Control:</span>
-                      <div className="font-mono break-all">{metadata.cacheControl}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-3">URLs</h4>
-                  <div className="space-y-3 text-sm">
-                    <div>
-                      <span className="font-medium text-muted-foreground">View URL:</span>
-                      <div className="font-mono text-xs break-all bg-background p-2 rounded border mt-1">
-                        {metadata.url}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Download URL:</span>
-                      <div className="font-mono text-xs break-all bg-background p-2 rounded border mt-1">
-                        {metadata.downloadUrl}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <MetadataDialog
+        isOpen={!!metadataFile}
+        onClose={() => setMetadataFile(null)}
+        metadataFile={metadataFile}
+        isLoadingMetadata={isLoadingMetadata}
+        metadata={metadata}
+        metadataError={metadataError}
+        formatFileSize={formatFileSize}
+        formatDate={formatDate}
+      />
     </div>
   );
 }

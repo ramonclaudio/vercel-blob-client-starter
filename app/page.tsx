@@ -1,11 +1,18 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { HoverPrefetchLink } from "@/components/ui/hover-prefetch-link";
 import { Upload, Image as ImageIcon, FileText, Settings, Zap, Shield, Globe, Images } from "lucide-react";
 import type { WebApplication, WithContext } from 'schema-dts';
 
-export default function Home() {
+export default async function Home() {
+  const headersList = await headers();
+  const host = headersList.get('host') || 'vercel-blob-client-starter.vercel.app';
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  const currentUrl = `${protocol}://${host}`;
+
   const features = [
     {
       icon: Upload,
@@ -58,13 +65,12 @@ export default function Home() {
     }
   ];
 
-  // WebApplication JSON-LD Schema for Homepage
   const webAppSchema: WithContext<WebApplication> = {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
     name: 'Vercel Blob Upload Demo',
     description: 'Interactive demo showcasing Vercel Blob client-side upload capabilities with drag & drop interface',
-    url: typeof window !== 'undefined' ? window.location.origin : 'https://vercel-blob-client-starter.vercel.app',
+    url: currentUrl,
     applicationCategory: 'BusinessApplication',
     browserRequirements: 'Requires JavaScript. Requires HTML5.',
     operatingSystem: 'Web Browser',
@@ -76,7 +82,7 @@ export default function Home() {
       'Multi-format Support',
       'Copy & Delete Operations'
     ],
-    screenshot: 'https://vercel-blob-client-starter.vercel.app/opengraph-image',
+    screenshot: `${currentUrl}/opengraph-image`,
     offers: {
       '@type': 'Offer',
       price: '0',
@@ -95,7 +101,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-      {/* WebApplication JSON-LD Schema */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -124,10 +129,10 @@ export default function Home() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="text-lg px-8">
-              <Link href="/gallery">
+              <HoverPrefetchLink href="/gallery">
                 <Images className="size-5 mr-2" />
                 Browse Gallery
-              </Link>
+              </HoverPrefetchLink>
             </Button>
             <Button asChild variant="outline" size="lg" className="text-lg px-8">
               <a href="https://vercel.com/docs/storage/vercel-blob" target="_blank" rel="noopener noreferrer">

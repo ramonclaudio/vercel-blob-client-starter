@@ -5,7 +5,6 @@ export async function GET(request: NextRequest) {
   const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
   const baseUrl = `${protocol}://${host}`
 
-  // Define the routes for the sitemap
   const routes = [
     {
       url: baseUrl,

@@ -2,6 +2,16 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileQuestion, Home, Upload } from 'lucide-react'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: '404 - Page Not Found | Vercel Blob Client Starter',
+  description: 'The page you are looking for does not exist or may have been moved.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default function NotFound() {
   return (

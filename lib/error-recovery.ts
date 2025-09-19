@@ -1,7 +1,3 @@
-/**
- * Utility functions for error recovery and retry logic
- */
-
 export interface RetryOptions {
   maxRetries?: number
   baseDelay?: number
@@ -10,9 +6,6 @@ export interface RetryOptions {
   onRetry?: (attempt: number, error: Error) => void
 }
 
-/**
- * Retry a function with exponential backoff
- */
 export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   options: RetryOptions = {}
@@ -39,13 +32,11 @@ export async function retryWithBackoff<T>(
 
       onRetry?.(attempt + 1, lastError)
 
-      // Calculate delay with exponential backoff
       const delay = Math.min(
         baseDelay * Math.pow(backoffFactor, attempt),
         maxDelay
       )
 
-      // Add some jitter to prevent thundering herd
       const jitter = Math.random() * 0.1 * delay
       await new Promise(resolve => setTimeout(resolve, delay + jitter))
     }
@@ -54,26 +45,19 @@ export async function retryWithBackoff<T>(
   throw lastError!
 }
 
-/**
- * Check if an error is retriable
- */
 export function isRetriableError(error: Error): boolean {
-  // Network errors
   if (error.name === 'NetworkError' || error.message.includes('fetch')) {
     return true
   }
 
-  // Timeout errors
   if (error.name === 'TimeoutError' || error.message.includes('timeout')) {
     return true
   }
 
-  // Rate limiting
   if (error.message.includes('429') || error.message.includes('rate limit')) {
     return true
   }
 
-  // Server errors (5xx)
   if (error.message.includes('500') || error.message.includes('502') ||
       error.message.includes('503') || error.message.includes('504')) {
     return true
@@ -82,9 +66,6 @@ export function isRetriableError(error: Error): boolean {
   return false
 }
 
-/**
- * Enhanced error information for better user feedback
- */
 export interface EnhancedError extends Error {
   code?: string
   statusCode?: number
@@ -104,7 +85,6 @@ export function enhanceError(error: Error | unknown): EnhancedError {
 
   const enhanced = error as EnhancedError
 
-  // Add user-friendly messages based on error patterns
   if (error.name === 'AbortError') {
     enhanced.userMessage = 'Operation was cancelled'
     enhanced.retriable = false
@@ -132,9 +112,6 @@ export function enhanceError(error: Error | unknown): EnhancedError {
   return enhanced
 }
 
-/**
- * Circuit breaker pattern for preventing cascading failures
- */
 export class CircuitBreaker {
   private failures = 0
   private lastFailTime = 0

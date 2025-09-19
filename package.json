@@ -5,10 +5,13 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "build:debug-memory": "next build --experimental-debug-memory-usage",
+    "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "clean": "rm -rf .next pnpm-lock.yaml node_modules dist"
+    "clean": "rm -rf .next",
+    "reset": "rm -rf .next pnpm-lock.yaml node_modules dist"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -35,6 +38,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
+    "@next/bundle-analyzer": "^15.5.3",
     "@tailwindcss/postcss": "^4.1.13",
     "@types/node": "^24.5.1",
     "@types/react": "^19.1.13",

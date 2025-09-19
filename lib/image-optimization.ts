@@ -25,7 +25,7 @@ export const getImageSizes = (type: 'thumbnail' | 'gallery' | 'full' = 'gallery'
   }
 };
 
-export const getImageQuality = (priority: 'low' | 'medium' | 'high' = 'medium') => {
+export const getImageQuality = () => {
   return 75;
 };
 

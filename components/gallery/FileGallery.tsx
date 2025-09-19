@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Download, Eye, Trash2, Copy, ExternalLink, Files, Info } from 'lucide-react';
-import { BLUR_DATA_URL, getImageSizes, getImageQuality } from '@/lib/image-optimization';
+import { BLUR_DATA_URL, getImageSizes } from '@/lib/image-optimization';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -145,7 +145,6 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
               sizes={getImageSizes('gallery')}
               quality={75}
               priority={isPriority}
-              loading={isPriority ? undefined : "lazy"}
               placeholder={shouldOptimize ? "blur" : "empty"}
               blurDataURL={shouldOptimize ? BLUR_DATA_URL : undefined}
               unoptimized={!shouldOptimize}

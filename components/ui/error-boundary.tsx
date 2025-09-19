@@ -27,10 +27,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log the error
     console.error('ErrorBoundary caught an error:', error, errorInfo)
 
-    // Call the onError callback if provided
     this.props.onError?.(error, errorInfo)
 
     // In production, you could send this to an error reporting service
@@ -61,7 +59,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 }
 
-// Hook-based error boundary for functional components
 export function useErrorHandler() {
   return (error: Error, errorInfo?: React.ErrorInfo) => {
     console.error('Error caught by useErrorHandler:', error, errorInfo)

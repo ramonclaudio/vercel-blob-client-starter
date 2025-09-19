@@ -115,8 +115,54 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    -webkit-tap-highlight-color: transparent;
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  button,
+  [role="button"],
+  a,
+  input,
+  textarea,
+  select {
+    -webkit-tap-highlight-color: rgba(var(--primary), 0.1);
+  }
+
+  .no-break {
+    white-space: nowrap;
+  }
+
+  @media (max-width: 768px) {
+    [data-slot="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  [data-slot="button"],
+  button,
+  [role="button"],
+  a,
+  input,
+  textarea,
+  select {
+    touch-action: manipulation;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }

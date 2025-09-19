@@ -132,7 +132,6 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 - ✅ **Next.js Image component** for automatic optimization
 - ✅ **WebP conversion** - 25-35% smaller than JPEG
 - ✅ **4 responsive breakpoints** - Reduced to stay within 5K transformations/month
-- ✅ **Lazy loading** with blur placeholder for smooth UX
 - ✅ **Fixed quality (75)** - Consistent caching to minimize transformations
 - ✅ **31-day cache TTL** - Vercel recommended maximum
 - ✅ **Skip small images** - Unoptimized for files < 10KB

@@ -1,9 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { Menu } from 'lucide-react';
+import { HoverPrefetchLink } from '@/components/ui/hover-prefetch-link';
+import { SafeLink } from '@/components/ui/safe-link';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -31,18 +32,18 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto max-w-screen-xl px-4 xl:px-0">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
+          <SafeLink href="/" className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">VB</span>
             </div>
             <span className="font-bold text-xl">Vercel Blob</span>
-          </Link>
+          </SafeLink>
 
           <NavigationMenu viewport={false} className="hidden lg:flex">
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
-                  <Link
+                  <SafeLink
                     href="/"
                     className={cn(
                       navigationMenuTriggerStyle(),
@@ -50,7 +51,7 @@ export function Header() {
                     )}
                   >
                     Home
-                  </Link>
+                  </SafeLink>
                 </NavigationMenuLink>
               </NavigationMenuItem>
 
@@ -76,7 +77,7 @@ export function Header() {
 
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
-                  <Link
+                  <HoverPrefetchLink
                     href="/gallery"
                     className={cn(
                       navigationMenuTriggerStyle(),
@@ -84,7 +85,7 @@ export function Header() {
                     )}
                   >
                     Gallery
-                  </Link>
+                  </HoverPrefetchLink>
                 </NavigationMenuLink>
               </NavigationMenuItem>
 
@@ -152,13 +153,16 @@ export function Header() {
                   </MobileNavItem>
                 </div>
 
-                <MobileNavItem
+                <HoverPrefetchLink
                   href="/gallery"
-                  isActive={pathname === '/gallery'}
+                  className={cn(
+                    'flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
+                    pathname === '/gallery' && 'bg-accent text-accent-foreground'
+                  )}
                   onClick={() => setIsOpen(false)}
                 >
                   Gallery
-                </MobileNavItem>
+                </HoverPrefetchLink>
 
                 <div className="flex flex-col space-y-2">
                   <span className="text-sm font-medium text-muted-foreground px-3 py-2">Resources</span>
@@ -195,6 +199,7 @@ const MobileNavItem = ({
   external = false,
   onClick,
   className,
+  prefetch,
 }: {
   href: string;
   children: React.ReactNode;
@@ -202,6 +207,7 @@ const MobileNavItem = ({
   external?: boolean;
   onClick?: () => void;
   className?: string;
+  prefetch?: false | null | undefined;
 }) => {
   const baseClasses = cn(
     'flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
@@ -224,9 +230,9 @@ const MobileNavItem = ({
   }
 
   return (
-    <Link href={href} className={baseClasses} onClick={onClick}>
+    <SafeLink href={href} className={baseClasses} onClick={onClick} prefetch={prefetch}>
       {children}
-    </Link>
+    </SafeLink>
   );
 };
 
@@ -236,6 +242,7 @@ const ListItem = ({
   children,
   href,
   external = false,
+  prefetch,
   ...props
 }: {
   className?: string;
@@ -243,6 +250,7 @@ const ListItem = ({
   children: React.ReactNode;
   href: string;
   external?: boolean;
+  prefetch?: false | null | undefined;
 }) => {
   const content = (
     <div
@@ -271,7 +279,7 @@ const ListItem = ({
 
   return (
     <NavigationMenuLink asChild>
-      <Link href={href}>{content}</Link>
+      <SafeLink href={href} prefetch={prefetch}>{content}</SafeLink>
     </NavigationMenuLink>
   );
 };

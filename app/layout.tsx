@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { SkipLink } from "@/components/ui/skip-link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { NavigationBlockerProvider } from "@/contexts/navigation-blocker";
 import type { SoftwareApplication, WithContext } from 'schema-dts';
 import "./globals.css";
 
@@ -83,13 +85,11 @@ export const metadata: Metadata = {
   other: {
     'dns-prefetch-1': 'https://blob.vercel-storage.com',
     'dns-prefetch-2': 'https://public.blob.vercel-storage.com',
-    'theme-color': '#000000',
     'color-scheme': 'dark light',
     'format-detection': 'telephone=no',
   },
 };
 
-// Global SoftwareApplication JSON-LD Schema
 const jsonLd: WithContext<SoftwareApplication> = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
@@ -147,14 +147,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col overflow-x-hidden bg-background text-foreground`}
       >
-        <Header />
-        <main className="flex-1 container-wrapper">
-          <div className="mx-auto max-w-screen-xl px-4 xl:px-0">
-            {children}
-          </div>
-        </main>
-        <Footer />
-        <Toaster />
+        <SkipLink />
+        <NavigationBlockerProvider>
+          <Header />
+          <main id="main-content" className="flex-1 container-wrapper scroll-mt-4">
+            <div className="mx-auto max-w-screen-xl px-4 xl:px-0">
+              {children}
+            </div>
+          </main>
+          <Footer />
+          <Toaster />
+        </NavigationBlockerProvider>
       </body>
     </html>
   );

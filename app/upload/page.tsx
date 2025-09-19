@@ -6,14 +6,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UploadZone } from '@/components/upload/UploadZone';
-import { AdvancedConfig } from '@/components/upload/AdvancedConfig';
-import { FileGallery } from '@/components/gallery/FileGallery';
 import { type PutBlobResult } from '@vercel/blob';
 import { type UploadOptions } from '@/hooks/useClientUpload';
 import { useDeleteBlob } from '@/hooks/useDeleteBlob';
+import { useNavigationBlocker } from '@/contexts/navigation-blocker';
 import { Trash2, Upload, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import type { HowTo, WithContext } from 'schema-dts';
+import { AdvancedConfig } from '@/components/upload/AdvancedConfig';
+import { FileGallery } from '@/components/gallery/FileGallery';
 
 interface FileItem extends PutBlobResult {
   uploadedAt: string;
@@ -24,7 +25,8 @@ function UploadPageContent() {
   const searchParams = useSearchParams();
   const [uploadedFiles, setUploadedFiles] = useState<FileItem[]>([]);
   const [activeTab, setActiveTab] = useState<string>('standard');
-  const { deleteFile, isDeleting, abortDelete } = useDeleteBlob();
+  const { deleteFile } = useDeleteBlob();
+  const { setIsBlocked } = useNavigationBlocker();
   const [advancedConfig, setAdvancedConfig] = useState<UploadOptions>({
     maxSize: 100 * 1024 * 1024,
     allowedTypes: [],
@@ -60,13 +62,15 @@ function UploadPageContent() {
     localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
   }, [uploadedFiles]);
 
+
+
   const handleUploadComplete = (result: PutBlobResult, originalFile: File) => {
     const fileItem: FileItem = {
       ...result,
       uploadedAt: new Date().toISOString(),
       size: originalFile.size,
     };
-    
+
     setUploadedFiles(prev => [fileItem, ...prev]);
     console.log('Upload completed:', fileItem);
   };
@@ -77,16 +81,19 @@ function UploadPageContent() {
 
   const handleDeleteFile = async (fileToDelete: FileItem) => {
     const toastId = toast.loading(`Deleting ${fileToDelete.pathname}...`);
-    
+    setIsBlocked(true);
+
     try {
       await deleteFile(fileToDelete.url);
-      
+
       setUploadedFiles(prev => prev.filter(file => file.url !== fileToDelete.url));
-      
+
       toast.success(`Successfully deleted ${fileToDelete.pathname}!`, { id: toastId });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Delete failed';
       toast.error(`Failed to delete file: ${errorMessage}`, { id: toastId });
+    } finally {
+      setIsBlocked(false);
     }
   };
 
@@ -98,7 +105,6 @@ function UploadPageContent() {
     setUploadedFiles([]);
   };
 
-  // HowTo JSON-LD Schema for Upload Tutorial
   const howToSchema: WithContext<HowTo> = {
     '@context': 'https://schema.org',
     '@type': 'HowTo',
@@ -160,7 +166,6 @@ function UploadPageContent() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
-      {/* HowTo JSON-LD Schema */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -306,20 +311,10 @@ function UploadPageContent() {
                   size="sm"
                   onClick={clearAllFiles}
                   className="text-destructive hover:text-destructive"
-                  disabled={isDeleting}
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Clear All
                 </Button>
-                {isDeleting && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={abortDelete}
-                  >
-                    Cancel Delete
-                  </Button>
-                )}
               </div>
             )}
           </div>

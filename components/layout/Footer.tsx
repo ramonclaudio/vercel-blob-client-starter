@@ -1,7 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { HoverPrefetchLink } from '@/components/ui/hover-prefetch-link';
+import { SafeLink } from '@/components/ui/safe-link';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -56,7 +57,7 @@ export function Footer() {
                       <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                     ) : (
                       <BreadcrumbLink asChild>
-                        <Link href={crumb.href}>{crumb.label}</Link>
+                        <SafeLink href={crumb.href}>{crumb.label}</SafeLink>
                       </BreadcrumbLink>
                     )}
                   </BreadcrumbItem>
@@ -85,18 +86,19 @@ export function Footer() {
           <div className="space-y-4 min-w-0">
             <h3 className="text-lg font-semibold break-words">Quick Links</h3>
             <div className="space-y-2">
-              <Link 
-                href="/upload" 
+              <SafeLink
+                href="/upload"
+                prefetch={false}
                 className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Upload Files
-              </Link>
-              <Link 
-                href="/gallery" 
+              </SafeLink>
+              <HoverPrefetchLink
+                href="/gallery"
                 className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 File Gallery
-              </Link>
+              </HoverPrefetchLink>
               <a 
                 href="https://vercel.com/docs/storage/vercel-blob" 
                 target="_blank" 

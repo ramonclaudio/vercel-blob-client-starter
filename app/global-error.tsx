@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle, RotateCcw } from 'lucide-react'
@@ -12,13 +11,10 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
-  useEffect(() => {
-    // Log the error to console in development
-    console.error('Global error caught:', error)
+  console.error('Global error caught:', error)
 
-    // In production, you could send this to an error reporting service
-    // Example: Sentry.captureException(error)
-  }, [error])
+  // In production, you could send this to an error reporting service
+  // Example: Sentry.captureException(error)
 
   return (
     <html lang="en">

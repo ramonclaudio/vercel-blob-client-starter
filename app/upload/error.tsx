@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle, RotateCcw, Upload, Home } from 'lucide-react'
@@ -13,13 +12,10 @@ export default function UploadError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
-  useEffect(() => {
-    // Log the error to console
-    console.error('Upload page error:', error)
+  console.error('Upload page error:', error)
 
-    // In production, you could send this to an error reporting service
-    // Example: Sentry.captureException(error, { tags: { page: 'upload' } })
-  }, [error])
+  // In production, you could send this to an error reporting service
+  // Example: Sentry.captureException(error, { tags: { page: 'upload' } })
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-2xl">
