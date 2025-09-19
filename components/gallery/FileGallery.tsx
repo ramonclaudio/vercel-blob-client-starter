@@ -12,6 +12,7 @@ import { type PutBlobResult } from '@vercel/blob';
 import { useCopyBlob } from '@/hooks/useCopyBlob';
 import { useBlobMetadata } from '@/hooks/useBlobMetadata';
 import { toast } from 'sonner';
+import { type OptimisticFileItem } from '@/app/upload/page';
 
 interface FileItem extends PutBlobResult {
   uploadedAt: string;
@@ -19,16 +20,16 @@ interface FileItem extends PutBlobResult {
 }
 
 interface FileGalleryProps {
-  files: FileItem[];
-  onDelete?: (file: FileItem) => void;
-  onCopy?: (file: FileItem, newFile: FileItem) => void;
+  files: (FileItem | OptimisticFileItem)[];
+  onDelete?: (file: FileItem | OptimisticFileItem) => void;
+  onCopy?: (file: FileItem | OptimisticFileItem, newFile: FileItem) => void;
   showAdvancedFeatures?: boolean;
   className?: string;
 }
 
 export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = false, className = '' }: FileGalleryProps) {
-  const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
-  const [metadataFile, setMetadataFile] = useState<FileItem | null>(null);
+  const [selectedFile, setSelectedFile] = useState<FileItem | OptimisticFileItem | null>(null);
+  const [metadataFile, setMetadataFile] = useState<FileItem | OptimisticFileItem | null>(null);
   const { copyBlob, isCopying } = useCopyBlob();
   const { getMetadata, isLoading: isLoadingMetadata, metadata, error: metadataError } = useBlobMetadata();
 
@@ -85,14 +86,19 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
     }
   };
 
-  const handleCopyFile = async (file: FileItem) => {
+  const handleCopyFile = async (file: FileItem | OptimisticFileItem) => {
+    if (!file.pathname || !file.url) {
+      toast.error('Cannot copy file: missing required properties');
+      return;
+    }
+
     const originalName = file.pathname.split('/').pop() || 'file';
     const extension = originalName.includes('.') ? originalName.split('.').pop() : '';
     const nameWithoutExtension = originalName.replace(`.${extension}`, '');
     const newPathname = `${file.pathname.replace(originalName, '')}${nameWithoutExtension}-copy${extension ? `.${extension}` : ''}`;
-    
+
     const toastId = toast.loading(`Duplicating ${originalName}...`);
-    
+
     try {
       const result = await copyBlob(file.url, newPathname, {
         addRandomSuffix: true,
@@ -113,10 +119,15 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
     }
   };
 
-  const handleGetMetadata = async (file: FileItem) => {
+  const handleGetMetadata = async (file: FileItem | OptimisticFileItem) => {
+    if (!file.url) {
+      toast.error('Cannot get metadata: missing file URL');
+      return;
+    }
+
     setMetadataFile(file);
-    const toastId = toast.loading(`Getting metadata for ${file.pathname.split('/').pop()}...`);
-    
+    const toastId = toast.loading(`Getting metadata for ${file.pathname?.split('/').pop() || 'file'}...`);
+
     try {
       await getMetadata(file.url);
       toast.success(`Metadata loaded successfully!`, { id: toastId });
@@ -127,8 +138,19 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
     }
   };
 
-  const renderFilePreview = (file: FileItem, index: number) => {
-    const fileType = getFileType(file.contentType);
+  const renderFilePreview = (file: FileItem | OptimisticFileItem, index: number) => {
+    if (!file.url) {
+      return (
+        <div className="aspect-video w-full bg-muted rounded-lg flex items-center justify-center">
+          <div className="text-center text-muted-foreground">
+            <div className="text-2xl mb-2">⏳</div>
+            <div className="text-sm">Processing...</div>
+          </div>
+        </div>
+      );
+    }
+
+    const fileType = getFileType(file.contentType || 'application/octet-stream');
 
     switch (fileType) {
       case 'image':
@@ -139,7 +161,7 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
           <div className="aspect-video w-full bg-muted rounded-lg overflow-hidden relative">
             <Image
               src={file.url}
-              alt={file.pathname}
+              alt={file.pathname || 'File preview'}
               fill
               className="object-cover"
               sizes={getImageSizes('gallery')}
@@ -180,8 +202,19 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
     }
   };
 
-  const renderFileModal = (file: FileItem) => {
-    const fileType = getFileType(file.contentType);
+  const renderFileModal = (file: FileItem | OptimisticFileItem) => {
+    if (!file.url) {
+      return (
+        <div className="w-full bg-black/5 rounded-lg flex items-center justify-center p-8">
+          <div className="text-center text-muted-foreground">
+            <div className="text-4xl mb-4">⏳</div>
+            <div className="text-lg">Processing...</div>
+          </div>
+        </div>
+      );
+    }
+
+    const fileType = getFileType(file.contentType || 'application/octet-stream');
 
     switch (fileType) {
       case 'image':
@@ -189,7 +222,7 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
           <div className="w-full bg-black/5 rounded-lg overflow-hidden">
             <Image
               src={file.url}
-              alt={file.pathname}
+              alt={file.pathname || 'File preview'}
               width={1600}
               height={1200}
               className="w-full h-auto object-contain"
@@ -221,7 +254,7 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
             <iframe
               src={file.url}
               className="w-full h-full border-0"
-              title={file.pathname}
+              title={file.pathname || 'File preview'}
             />
           </div>
         );
@@ -231,7 +264,7 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
             <iframe
               src={file.url}
               className="w-full h-full border-0"
-              title={file.pathname}
+              title={file.pathname || 'File preview'}
             />
           </div>
         );
@@ -280,10 +313,10 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
               <div className="mt-3 space-y-2">
                 <div className="flex items-start justify-between">
                   <h3 className="font-medium text-sm truncate flex-1 mr-2">
-                    {file.pathname.split('/').pop() || file.pathname}
+                    {file.pathname?.split('/').pop() || file.pathname || 'Unnamed file'}
                   </h3>
                   <Badge variant="secondary" className="text-xs">
-                    {getFileType(file.contentType)}
+                    {getFileType(file.contentType || 'application/octet-stream')}
                   </Badge>
                 </div>
                 
@@ -306,7 +339,7 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
                 <DialogContent className="max-w-7xl w-[95vw] max-h-[95vh] overflow-auto">
                   <DialogHeader>
                     <DialogTitle className="text-base font-medium">
-                      {truncateFilename(file.pathname)}
+                      {truncateFilename(file.pathname || 'Unnamed file')}
                     </DialogTitle>
                   </DialogHeader>
                   <div className="flex-1 overflow-auto">
@@ -327,7 +360,7 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => copyToClipboard(file.url)}
+                onClick={() => file.url && copyToClipboard(file.url)}
               >
                 <Copy className="w-4 h-4 mr-1" />
                 Copy URL
@@ -397,8 +430,8 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
               <div className="bg-muted/50 p-4 rounded-lg">
                 <h4 className="font-medium mb-2">File Information</h4>
                 <div className="text-sm space-y-1">
-                  <div><span className="font-medium">Filename:</span> {metadataFile.pathname.split('/').pop()}</div>
-                  <div><span className="font-medium">Full Path:</span> {metadataFile.pathname}</div>
+                  <div><span className="font-medium">Filename:</span> {metadataFile.pathname?.split('/').pop() || 'Unknown'}</div>
+                  <div><span className="font-medium">Full Path:</span> {metadataFile.pathname || 'Unknown'}</div>
                 </div>
               </div>
             )}

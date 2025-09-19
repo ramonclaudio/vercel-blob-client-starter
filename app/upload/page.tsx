@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useOptimistic, startTransition } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,9 +21,34 @@ interface FileItem extends PutBlobResult {
   size?: number;
 }
 
+export interface OptimisticFileItem extends Partial<FileItem> {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  isOptimistic?: boolean;
+  uploadedAt: string;
+  url?: string;
+  pathname?: string;
+}
+
 function UploadPageContent() {
   const searchParams = useSearchParams();
   const [uploadedFiles, setUploadedFiles] = useState<FileItem[]>([]);
+
+  // React 19 useOptimistic for instant file upload feedback
+  const [optimisticFiles, addOptimisticFile] = useOptimistic(
+    uploadedFiles as OptimisticFileItem[],
+    (state, newFile: OptimisticFileItem) => {
+      // If it's an optimistic file, add it to the beginning
+      if (newFile.isOptimistic) {
+        return [newFile, ...state];
+      }
+      // If it's a real file completing, replace the optimistic one
+      const filtered = state.filter(file => !file.isOptimistic || file.id !== newFile.id);
+      return [newFile, ...filtered];
+    }
+  );
   const [activeTab, setActiveTab] = useState<string>('standard');
   const { deleteFile } = useDeleteBlob();
   const { setIsBlocked } = useNavigationBlocker();
@@ -62,16 +87,49 @@ function UploadPageContent() {
     localStorage.setItem('uploadedFiles', JSON.stringify(uploadedFiles));
   }, [uploadedFiles]);
 
+  // React 19 optimistic file handling functions
+  const handleOptimisticUploadStart = (files: File[]) => {
+    files.forEach(file => {
+      const optimisticFile: OptimisticFileItem = {
+        id: `${file.name}-${Date.now()}-${Math.random()}`,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        isOptimistic: true,
+        uploadedAt: new Date().toISOString(),
+        url: `pending://${file.name}`,
+        pathname: file.name,
+      };
 
+      startTransition(() => {
+        addOptimisticFile(optimisticFile);
+      });
+    });
+  };
 
   const handleUploadComplete = (result: PutBlobResult, originalFile: File) => {
+    const completedFile: OptimisticFileItem = {
+      ...result,
+      id: `${originalFile.name}-completed`,
+      name: originalFile.name,
+      size: originalFile.size,
+      type: originalFile.type,
+      uploadedAt: new Date().toISOString(),
+      isOptimistic: false,
+    };
+
+    // Update the real state for persistence
     const fileItem: FileItem = {
       ...result,
-      uploadedAt: new Date().toISOString(),
+      uploadedAt: completedFile.uploadedAt,
       size: originalFile.size,
     };
 
-    setUploadedFiles(prev => [fileItem, ...prev]);
+    startTransition(() => {
+      setUploadedFiles(prev => [fileItem, ...prev]);
+      addOptimisticFile(completedFile);
+    });
+
     console.log('Upload completed:', fileItem);
   };
 
@@ -79,7 +137,12 @@ function UploadPageContent() {
     console.error('Upload error:', error);
   };
 
-  const handleDeleteFile = async (fileToDelete: FileItem) => {
+  const handleDeleteFile = async (fileToDelete: FileItem | OptimisticFileItem) => {
+    if (!fileToDelete.url || !fileToDelete.pathname) {
+      toast.error('Cannot delete file: missing required properties');
+      return;
+    }
+
     const toastId = toast.loading(`Deleting ${fileToDelete.pathname}...`);
     setIsBlocked(true);
 
@@ -97,7 +160,7 @@ function UploadPageContent() {
     }
   };
 
-  const handleCopyFile = (originalFile: FileItem, newFile: FileItem) => {
+  const handleCopyFile = (originalFile: FileItem | OptimisticFileItem, newFile: FileItem) => {
     setUploadedFiles(prev => [...prev, newFile]);
   };
 
@@ -204,6 +267,7 @@ function UploadPageContent() {
               <UploadZone
                 onUploadComplete={handleUploadComplete}
                 onUploadError={handleUploadError}
+                onUploadStart={handleOptimisticUploadStart}
                 multiple={true}
                 options={{
                   maxSize: 100 * 1024 * 1024,
@@ -234,6 +298,7 @@ function UploadPageContent() {
                   <UploadZone
                     onUploadComplete={handleUploadComplete}
                     onUploadError={handleUploadError}
+                    onUploadStart={handleOptimisticUploadStart}
                     multiple={true}
                     options={advancedConfig}
                     accept={advancedConfig.allowedTypes?.length ? advancedConfig.allowedTypes.join(',') : undefined}
@@ -298,13 +363,13 @@ function UploadPageContent() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Uploaded Files ({uploadedFiles.length})</CardTitle>
+              <CardTitle>Uploaded Files ({optimisticFiles.length})</CardTitle>
               <CardDescription>
                 Files uploaded during this session. Click preview to view or download files.
                 {activeTab === 'advanced' && <span className="text-orange-600"> Advanced features like file duplication and metadata inspection are available in this mode.</span>}
               </CardDescription>
             </div>
-            {uploadedFiles.length > 0 && (
+            {optimisticFiles.length > 0 && (
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -321,7 +386,7 @@ function UploadPageContent() {
         </CardHeader>
         <CardContent>
           <FileGallery
-            files={uploadedFiles}
+            files={optimisticFiles}
             onDelete={handleDeleteFile}
             onCopy={handleCopyFile}
             showAdvancedFeatures={activeTab === 'advanced'}

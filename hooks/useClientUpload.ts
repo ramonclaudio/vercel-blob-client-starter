@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useCallback, useRef, useReducer, startTransition } from 'react';
 import { upload } from '@vercel/blob/client';
 import { type PutBlobResult, BlobAccessError } from '@vercel/blob';
 
@@ -30,8 +30,65 @@ export interface UploadState {
   result: PutBlobResult | null;
 }
 
+// React 19 useReducer action types for better state management
+type UploadAction =
+  | { type: 'UPLOAD_START' }
+  | { type: 'UPLOAD_PROGRESS'; payload: UploadProgress }
+  | { type: 'UPLOAD_SUCCESS'; payload: PutBlobResult }
+  | { type: 'UPLOAD_ERROR'; payload: string }
+  | { type: 'UPLOAD_CANCELLED' }
+  | { type: 'RESET_STATE' };
+
+// React 19 useReducer reducer function for predictable state transitions
+function uploadReducer(state: UploadState, action: UploadAction): UploadState {
+  switch (action.type) {
+    case 'UPLOAD_START':
+      return {
+        isUploading: true,
+        progress: null,
+        error: null,
+        result: null,
+      };
+    case 'UPLOAD_PROGRESS':
+      return {
+        ...state,
+        progress: action.payload,
+      };
+    case 'UPLOAD_SUCCESS':
+      return {
+        isUploading: false,
+        progress: state.progress,
+        error: null,
+        result: action.payload,
+      };
+    case 'UPLOAD_ERROR':
+      return {
+        isUploading: false,
+        progress: null,
+        error: action.payload,
+        result: null,
+      };
+    case 'UPLOAD_CANCELLED':
+      return {
+        ...state,
+        isUploading: false,
+        error: 'Upload cancelled',
+      };
+    case 'RESET_STATE':
+      return {
+        isUploading: false,
+        progress: null,
+        error: null,
+        result: null,
+      };
+    default:
+      return state;
+  }
+}
+
 export function useClientUpload() {
-  const [uploadState, setUploadState] = useState<UploadState>({
+  // React 19 useReducer for complex state management
+  const [uploadState, dispatch] = useReducer(uploadReducer, {
     isUploading: false,
     progress: null,
     error: null,
@@ -44,12 +101,7 @@ export function useClientUpload() {
     file: File,
     options: UploadOptions = {}
   ): Promise<PutBlobResult> => {
-    setUploadState({
-      isUploading: true,
-      progress: null,
-      error: null,
-      result: null,
-    });
+    dispatch({ type: 'UPLOAD_START' });
 
     abortControllerRef.current = new AbortController();
 
@@ -97,18 +149,14 @@ export function useClientUpload() {
         contentType: options.contentType,
         abortSignal: abortControllerRef.current.signal,
         onUploadProgress: (progress) => {
-          setUploadState(prev => ({
-            ...prev,
-            progress,
-          }));
+          startTransition(() => {
+            dispatch({ type: 'UPLOAD_PROGRESS', payload: progress });
+          });
         },
       });
 
-      setUploadState({
-        isUploading: false,
-        progress: { loaded: file.size, total: file.size, percentage: 100 },
-        error: null,
-        result,
+      startTransition(() => {
+        dispatch({ type: 'UPLOAD_SUCCESS', payload: result });
       });
 
       return result;
@@ -121,12 +169,9 @@ export function useClientUpload() {
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-      
-      setUploadState({
-        isUploading: false,
-        progress: null,
-        error: errorMessage,
-        result: null,
+
+      startTransition(() => {
+        dispatch({ type: 'UPLOAD_ERROR', payload: errorMessage });
       });
 
       throw error;
@@ -140,12 +185,7 @@ export function useClientUpload() {
     const results: PutBlobResult[] = [];
     const errors: string[] = [];
 
-    setUploadState({
-      isUploading: true,
-      progress: null,
-      error: null,
-      result: null,
-    });
+    dispatch({ type: 'UPLOAD_START' });
 
     try {
       for (let i = 0; i < files.length; i++) {
@@ -163,23 +203,20 @@ export function useClientUpload() {
         throw new Error(`Some uploads failed:\n${errors.join('\n')}`);
       }
 
-      setUploadState({
-        isUploading: false,
-        progress: { loaded: files.length, total: files.length, percentage: 100 },
-        error: null,
-        result: null,
+      startTransition(() => {
+        dispatch({
+          type: 'UPLOAD_SUCCESS',
+          payload: results[0] || { url: '', pathname: '', downloadUrl: '' } as PutBlobResult
+        });
       });
 
       return results;
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Bulk upload failed';
-      
-      setUploadState({
-        isUploading: false,
-        progress: null,
-        error: errorMessage,
-        result: null,
+
+      startTransition(() => {
+        dispatch({ type: 'UPLOAD_ERROR', payload: errorMessage });
       });
 
       throw error;
@@ -189,21 +226,12 @@ export function useClientUpload() {
   const abortUpload = useCallback(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
-      setUploadState(prev => ({
-        ...prev,
-        isUploading: false,
-        error: 'Upload cancelled',
-      }));
+      dispatch({ type: 'UPLOAD_CANCELLED' });
     }
   }, []);
 
   const resetState = useCallback(() => {
-    setUploadState({
-      isUploading: false,
-      progress: null,
-      error: null,
-      result: null,
-    });
+    dispatch({ type: 'RESET_STATE' });
   }, []);
 
   return {

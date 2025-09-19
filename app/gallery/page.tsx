@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useOptimistic, startTransition, useReducer } from 'react';
 import Form from 'next/form';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,24 +38,75 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { BlobItem } from '@/hooks/useListBlobs';
 
+// React 19 useReducer UI state management
+interface UIState {
+  currentFolder: string;
+  viewMode: 'grid' | 'list';
+  displayMode: 'expanded' | 'folded';
+  selectedFile: BlobItem | null;
+  metadataFile: BlobItem | null;
+}
+
+type UIAction =
+  | { type: 'SET_CURRENT_FOLDER'; payload: string }
+  | { type: 'SET_VIEW_MODE'; payload: 'grid' | 'list' }
+  | { type: 'SET_DISPLAY_MODE'; payload: 'expanded' | 'folded' }
+  | { type: 'SET_SELECTED_FILE'; payload: BlobItem | null }
+  | { type: 'SET_METADATA_FILE'; payload: BlobItem | null };
+
+function uiReducer(state: UIState, action: UIAction): UIState {
+  switch (action.type) {
+    case 'SET_CURRENT_FOLDER':
+      return { ...state, currentFolder: action.payload };
+    case 'SET_VIEW_MODE':
+      return { ...state, viewMode: action.payload };
+    case 'SET_DISPLAY_MODE':
+      return { ...state, displayMode: action.payload };
+    case 'SET_SELECTED_FILE':
+      return { ...state, selectedFile: action.payload };
+    case 'SET_METADATA_FILE':
+      return { ...state, metadataFile: action.payload };
+    default:
+      return state;
+  }
+}
 
 export default function GalleryPage() {
   const searchParams = useSearchParams();
-  const [currentFolder, setCurrentFolder] = useState<string>('');
   const searchPrefix = searchParams.get('prefix') || '';
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [displayMode, setDisplayMode] = useState<'expanded' | 'folded'>('folded');
-  const [selectedFile, setSelectedFile] = useState<BlobItem | null>(null);
-  const [metadataFile, setMetadataFile] = useState<BlobItem | null>(null);
 
-  const { 
-    isLoading, 
-    error, 
-    data, 
-    allBlobs, 
-    loadMore, 
-    refresh 
+  // React 19 useReducer for unified UI state management
+  const [uiState, dispatch] = useReducer(uiReducer, {
+    currentFolder: '',
+    viewMode: 'grid',
+    displayMode: 'folded',
+    selectedFile: null,
+    metadataFile: null,
+  });
+
+  const { currentFolder, viewMode, displayMode, selectedFile, metadataFile } = uiState;
+
+  const {
+    isLoading,
+    error,
+    data,
+    allBlobs,
+    loadMore,
+    refresh
   } = useListBlobs();
+
+  // React 19 useOptimistic for instant delete and copy feedback
+  const [optimisticBlobs, updateOptimisticBlobs] = useOptimistic(
+    allBlobs,
+    (state, action: { type: 'delete'; url: string } | { type: 'add'; blob: BlobItem }) => {
+      if (action.type === 'delete') {
+        return state.filter(blob => blob.url !== action.url);
+      } else if (action.type === 'add') {
+        return [action.blob, ...state];
+      }
+      return state;
+    }
+  );
 
   const { deleteFile } = useDeleteBlob();
   const { copyBlob } = useCopyBlob();
@@ -79,7 +130,7 @@ export default function GalleryPage() {
   }, [handleRefresh]);
 
   const handleFolderNavigation = async (folderPath: string) => {
-    setCurrentFolder(folderPath);
+    dispatch({ type: 'SET_CURRENT_FOLDER', payload: folderPath });
     try {
       await refresh({
         prefix: folderPath || undefined,
@@ -105,15 +156,25 @@ export default function GalleryPage() {
   };
 
   const handleDeleteFile = async (file: BlobItem) => {
-    const toastId = toast.loading(`Deleting ${file.pathname.split('/').pop()}...`);
-    
+    const fileName = file.pathname.split('/').pop() || 'file';
+
+    // React 19 optimistic delete - remove file immediately from UI
+    startTransition(() => {
+      updateOptimisticBlobs({ type: 'delete', url: file.url });
+    });
+
+    const toastId = toast.loading(`Deleting ${fileName}...`);
+
     try {
       await deleteFile(file.url);
-      toast.success(`Successfully deleted ${file.pathname.split('/').pop()}!`, { id: toastId });
+      toast.success(`Successfully deleted ${fileName}!`, { id: toastId });
+      // Refresh to sync with server state
       await handleRefresh();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Delete failed';
       toast.error(`Failed to delete file: ${errorMessage}`, { id: toastId });
+      // The optimistic update will be reverted automatically when refresh happens
+      await handleRefresh();
     }
   };
 
@@ -122,9 +183,22 @@ export default function GalleryPage() {
     const extension = originalName.includes('.') ? originalName.split('.').pop() : '';
     const nameWithoutExtension = originalName.replace(`.${extension}`, '');
     const newPathname = `${file.pathname.replace(originalName, '')}${nameWithoutExtension}-copy${extension ? `.${extension}` : ''}`;
-    
+
+    // React 19 optimistic copy - show duplicate immediately in UI
+    const optimisticCopy: BlobItem = {
+      ...file,
+      pathname: newPathname,
+      url: `pending-copy://${newPathname}`,
+      downloadUrl: `pending-copy://${newPathname}`,
+      uploadedAt: new Date(),
+    };
+
+    startTransition(() => {
+      updateOptimisticBlobs({ type: 'add', blob: optimisticCopy });
+    });
+
     const toastId = toast.loading(`Duplicating ${originalName}...`);
-    
+
     try {
       await copyBlob(file.url, newPathname, {
         addRandomSuffix: true,
@@ -134,11 +208,13 @@ export default function GalleryPage() {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Copy failed';
       toast.error(`Failed to duplicate file: ${errorMessage}`, { id: toastId });
+      // The optimistic update will be reverted automatically when refresh happens
+      await handleRefresh();
     }
   };
 
   const handleGetMetadata = async (file: BlobItem) => {
-    setMetadataFile(file);
+    dispatch({ type: 'SET_METADATA_FILE', payload: file });
     const toastId = toast.loading(`Getting metadata for ${file.pathname.split('/').pop()}...`);
     
     try {
@@ -147,7 +223,7 @@ export default function GalleryPage() {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to get metadata';
       toast.error(`Failed to get metadata: ${errorMessage}`, { id: toastId });
-      setMetadataFile(null);
+      dispatch({ type: 'SET_METADATA_FILE', payload: null });
     }
   };
 
@@ -356,7 +432,7 @@ export default function GalleryPage() {
             </div>
 
             <div className="flex gap-2">
-              <Select value={displayMode} onValueChange={(value: 'expanded' | 'folded') => setDisplayMode(value)}>
+              <Select value={displayMode} onValueChange={(value: 'expanded' | 'folded') => dispatch({ type: 'SET_DISPLAY_MODE', payload: value })}>
                 <SelectTrigger className="w-32">
                   <SelectValue />
                 </SelectTrigger>
@@ -366,7 +442,7 @@ export default function GalleryPage() {
                 </SelectContent>
               </Select>
 
-              <Select value={viewMode} onValueChange={(value: 'grid' | 'list') => setViewMode(value)}>
+              <Select value={viewMode} onValueChange={(value: 'grid' | 'list') => dispatch({ type: 'SET_VIEW_MODE', payload: value })}>
                 <SelectTrigger className="w-24">
                   <SelectValue />
                 </SelectTrigger>
@@ -427,7 +503,7 @@ export default function GalleryPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>
-                Blobs ({allBlobs.length})
+                Blobs ({optimisticBlobs.length})
                 {data?.hasMore && <span className="text-muted-foreground ml-2">(+more available)</span>}
               </CardTitle>
               <CardDescription>
@@ -442,7 +518,7 @@ export default function GalleryPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {allBlobs.length === 0 && !isLoading ? (
+          {optimisticBlobs.length === 0 && !isLoading ? (
             <div className="text-center py-12">
               <div className="text-muted-foreground">
                 <div className="text-4xl mb-4">📁</div>
@@ -455,7 +531,7 @@ export default function GalleryPage() {
               ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
               : "space-y-2"
             }>
-              {allBlobs.map((file, index) => (
+              {optimisticBlobs.map((file, index) => (
                 <Card key={`${file.url}-${index}`} className={viewMode === 'grid' ? "overflow-hidden" : ""}>
                   <CardContent className={viewMode === 'grid' ? "p-4" : "p-3"}>
                     {viewMode === 'grid' ? (
@@ -496,7 +572,7 @@ export default function GalleryPage() {
                   <div className="px-4 pb-4 flex flex-wrap gap-2">
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" onClick={() => setSelectedFile(file)}>
+                        <Button variant="outline" size="sm" onClick={() => dispatch({ type: 'SET_SELECTED_FILE', payload: file })}>
                           <Eye className="w-4 h-4 mr-1" />
                           Preview
                         </Button>
@@ -555,7 +631,7 @@ export default function GalleryPage() {
 
       <MetadataDialog
         isOpen={!!metadataFile}
-        onClose={() => setMetadataFile(null)}
+        onClose={() => dispatch({ type: 'SET_METADATA_FILE', payload: null })}
         metadataFile={metadataFile}
         isLoadingMetadata={isLoadingMetadata}
         metadata={metadata}

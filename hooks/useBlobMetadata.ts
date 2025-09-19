@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, startTransition } from 'react';
 
 export interface BlobMetadata {
   size: number;
@@ -31,10 +31,12 @@ export function useBlobMetadata() {
   const getMetadata = useCallback(async (url: string): Promise<BlobMetadata> => {
     abortControllerRef.current = new AbortController();
 
-    setMetadataState({
-      isLoading: true,
-      error: null,
-      metadata: null,
+    startTransition(() => {
+      setMetadataState({
+        isLoading: true,
+        error: null,
+        metadata: null,
+      });
     });
 
     try {
@@ -54,20 +56,24 @@ export function useBlobMetadata() {
         metadata.uploadedAt = new Date(metadata.uploadedAt);
       }
 
-      setMetadataState({
-        isLoading: false,
-        error: null,
-        metadata,
+      startTransition(() => {
+        setMetadataState({
+          isLoading: false,
+          error: null,
+          metadata,
+        });
       });
 
       return metadata;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to get metadata';
       
-      setMetadataState({
-        isLoading: false,
-        error: errorMessage,
-        metadata: null,
+      startTransition(() => {
+        setMetadataState({
+          isLoading: false,
+          error: errorMessage,
+          metadata: null,
+        });
       });
 
       throw error;
@@ -77,19 +83,23 @@ export function useBlobMetadata() {
   const abortRequest = useCallback(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
-      setMetadataState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: 'Metadata request cancelled',
-      }));
+      startTransition(() => {
+        setMetadataState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: 'Metadata request cancelled',
+        }));
+      });
     }
   }, []);
 
   const resetState = useCallback(() => {
-    setMetadataState({
-      isLoading: false,
-      error: null,
-      metadata: null,
+    startTransition(() => {
+      setMetadataState({
+        isLoading: false,
+        error: null,
+        metadata: null,
+      });
     });
   }, []);
 

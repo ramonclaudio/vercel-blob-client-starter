@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### React 19 Hooks Optimization - Advanced State Management
+
+- **useReducer Implementation**: Replace useState with useReducer for complex state management
+  - Gallery Page: Unified UI state management (currentFolder, viewMode, displayMode, selectedFile, metadataFile) (`app/gallery/page.tsx`)
+  - AdvancedConfig Component: Consolidated 4+ useState hooks into single useReducer (`components/upload/AdvancedConfig.tsx`)
+  - Upload Hook: Complex upload state management with predictable state transitions (`hooks/useClientUpload.ts`)
+
+- **useOptimistic for Instant Feedback**: Immediate UI updates with automatic rollback on failure
+  - Gallery Operations: Instant delete and copy operations (`app/gallery/page.tsx`)
+  - File Uploads: Immediate file display during upload process (`app/upload/page.tsx`)
+  - Enhanced UX: Zero perceived latency for common operations
+
+- **startTransition for Non-Blocking Updates**: Prevent UI blocking during state updates
+  - All Custom Hooks: Wrapped state updates to maintain responsiveness (`hooks/useBlobMetadata.ts`, `hooks/useDeleteBlob.ts`, `hooks/useListBlobs.ts`)
+  - Smooth metadata fetching, listing, and deletion operations
+  - Performance: Keeps interface responsive during heavy operations
+
+- **Enhanced TypeScript Support**: Improved type safety for optimistic operations
+  - UploadZone: Added onUploadStart callback for optimistic integration (`components/upload/UploadZone.tsx`)
+  - FileGallery: Enhanced to handle optimistic file types (`components/gallery/FileGallery.tsx`)
+  - Better error handling and automatic rollback mechanisms
+
 ### React 19 Hooks Optimization
 
 - **React 19 Official Patterns**: Achieve 100% compliance with React 19 documentation

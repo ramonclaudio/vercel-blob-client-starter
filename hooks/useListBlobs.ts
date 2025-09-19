@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, startTransition } from 'react';
 
 export interface BlobItem {
   size: number;
@@ -44,11 +44,13 @@ export function useListBlobs() {
   const listBlobs = useCallback(async (options: ListBlobsOptions = {}): Promise<ListBlobsResult> => {
     abortControllerRef.current = new AbortController();
 
-    setState(prev => ({
-      ...prev,
-      isLoading: true,
-      error: null,
-    }));
+    startTransition(() => {
+      setState(prev => ({
+        ...prev,
+        isLoading: true,
+        error: null,
+      }));
+    });
 
     try {
       const params = new URLSearchParams();
@@ -79,23 +81,27 @@ export function useListBlobs() {
         blobs: processedBlobs,
       };
 
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: null,
-        data: processedResult,
-        allBlobs: options.cursor ? [...prev.allBlobs, ...processedBlobs] : processedBlobs,
-      }));
+      startTransition(() => {
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: null,
+          data: processedResult,
+          allBlobs: options.cursor ? [...prev.allBlobs, ...processedBlobs] : processedBlobs,
+        }));
+      });
 
       return processedResult;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to list blobs';
       
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage,
-      }));
+      startTransition(() => {
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: errorMessage,
+        }));
+      });
 
       throw error;
     }

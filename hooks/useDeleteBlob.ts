@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, startTransition } from 'react';
 
 export interface DeleteState {
   isDeleting: boolean;
@@ -18,9 +18,11 @@ export function useDeleteBlob() {
   const deleteFile = useCallback(async (url: string): Promise<void> => {
     abortControllerRef.current = new AbortController();
 
-    setDeleteState({
-      isDeleting: true,
-      error: null,
+    startTransition(() => {
+      setDeleteState({
+        isDeleting: true,
+        error: null,
+      });
     });
 
     try {
@@ -34,16 +36,20 @@ export function useDeleteBlob() {
         throw new Error(errorData.error || 'Delete failed');
       }
 
-      setDeleteState({
-        isDeleting: false,
-        error: null,
+      startTransition(() => {
+        setDeleteState({
+          isDeleting: false,
+          error: null,
+        });
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Delete failed';
-      
-      setDeleteState({
-        isDeleting: false,
-        error: errorMessage,
+
+      startTransition(() => {
+        setDeleteState({
+          isDeleting: false,
+          error: errorMessage,
+        });
       });
 
       throw error;

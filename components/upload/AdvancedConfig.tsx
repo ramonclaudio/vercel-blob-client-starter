@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useId, useMemo, useCallback } from 'react';
+import { useId, useMemo, useCallback, useReducer, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,22 +16,133 @@ interface AdvancedConfigProps {
   className?: string;
 }
 
+// React 19 useReducer unified state management
+interface ConfigState {
+  config: UploadOptions;
+  customTypes: string;
+  folderPath: string;
+  customPayload: string;
+  contentType: string;
+}
+
+type ConfigAction =
+  | { type: 'UPDATE_CONFIG'; payload: Partial<UploadOptions> }
+  | { type: 'SET_CUSTOM_TYPES'; payload: string }
+  | { type: 'SET_FOLDER_PATH'; payload: string }
+  | { type: 'SET_CUSTOM_PAYLOAD'; payload: string }
+  | { type: 'SET_CONTENT_TYPE'; payload: string }
+  | { type: 'RESET_TO_DEFAULTS' };
+
+function configReducer(state: ConfigState, action: ConfigAction): ConfigState {
+  switch (action.type) {
+    case 'UPDATE_CONFIG':
+      return {
+        ...state,
+        config: {
+          ...state.config,
+          ...action.payload,
+          folderPath: state.folderPath || undefined,
+          contentType: state.contentType || undefined,
+          clientPayload: state.customPayload ? (() => {
+            try {
+              return JSON.parse(state.customPayload);
+            } catch {
+              return { customData: state.customPayload };
+            }
+          })() : undefined,
+        },
+      };
+    case 'SET_CUSTOM_TYPES':
+      const types = action.payload
+        .split(',')
+        .map(type => type.trim())
+        .filter(type => type.length > 0);
+      return {
+        ...state,
+        customTypes: action.payload,
+        config: {
+          ...state.config,
+          allowedTypes: types.length > 0 ? types : [],
+        },
+      };
+    case 'SET_FOLDER_PATH':
+      return {
+        ...state,
+        folderPath: action.payload,
+        config: {
+          ...state.config,
+          folderPath: action.payload || undefined,
+        },
+      };
+    case 'SET_CUSTOM_PAYLOAD':
+      return {
+        ...state,
+        customPayload: action.payload,
+        config: {
+          ...state.config,
+          clientPayload: action.payload ? (() => {
+            try {
+              return JSON.parse(action.payload);
+            } catch {
+              return { customData: action.payload };
+            }
+          })() : undefined,
+        },
+      };
+    case 'SET_CONTENT_TYPE':
+      return {
+        ...state,
+        contentType: action.payload,
+        config: {
+          ...state.config,
+          contentType: action.payload || undefined,
+        },
+      };
+    case 'RESET_TO_DEFAULTS':
+      return {
+        config: {
+          maxSize: 100 * 1024 * 1024,
+          allowedTypes: [],
+          addRandomSuffix: true,
+          allowOverwrite: false,
+          cacheControlMaxAge: 60 * 60 * 24 * 30,
+          validityMinutes: 60,
+          multipart: false,
+          clientPayload: {},
+        },
+        customTypes: '',
+        folderPath: '',
+        customPayload: '',
+        contentType: '',
+      };
+    default:
+      return state;
+  }
+}
+
 export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfigProps) {
-  const [config, setConfig] = useState<UploadOptions>({
-    maxSize: 100 * 1024 * 1024,
-    allowedTypes: [],
-    addRandomSuffix: true,
-    allowOverwrite: false,
-    cacheControlMaxAge: 60 * 60 * 24 * 30,
-    validityMinutes: 60,
-    multipart: false,
-    clientPayload: {},
+  // React 19 useReducer for unified state management
+  const [state, dispatch] = useReducer(configReducer, {
+    config: {
+      maxSize: 100 * 1024 * 1024,
+      allowedTypes: [],
+      addRandomSuffix: true,
+      allowOverwrite: false,
+      cacheControlMaxAge: 60 * 60 * 24 * 30,
+      validityMinutes: 60,
+      multipart: false,
+      clientPayload: {},
+    },
+    customTypes: '',
+    folderPath: '',
+    customPayload: '',
+    contentType: '',
   });
 
-  const [customTypes, setCustomTypes] = useState('');
-  const [folderPath, setFolderPath] = useState('');
-  const [customPayload, setCustomPayload] = useState('');
-  const [contentType, setContentType] = useState('');
+  // Notify parent component of config changes
+  useEffect(() => {
+    onConfigChange(state.config);
+  }, [state.config, onConfigChange]);
 
   // Generate unique IDs for accessibility (React 19 useId compliance)
   const maxSizeId = useId();
@@ -43,50 +154,16 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
   const customPayloadId = useId();
 
   const updateConfig = useCallback((updates: Partial<UploadOptions>) => {
-    const newConfig = {
-      ...config,
-      ...updates,
-      folderPath: folderPath || undefined,
-      contentType: contentType || undefined,
-      clientPayload: customPayload ? (() => {
-        try {
-          return JSON.parse(customPayload);
-        } catch {
-          return { customData: customPayload };
-        }
-      })() : undefined,
-    };
-    setConfig(newConfig);
-    onConfigChange(newConfig);
-  }, [config, folderPath, contentType, customPayload, onConfigChange]);
+    dispatch({ type: 'UPDATE_CONFIG', payload: updates });
+  }, []);
 
   const resetToDefaults = useCallback(() => {
-    const defaultConfig: UploadOptions = {
-      maxSize: 100 * 1024 * 1024,
-      allowedTypes: [],
-      addRandomSuffix: true,
-      allowOverwrite: false,
-      cacheControlMaxAge: 60 * 60 * 24 * 30,
-      validityMinutes: 60,
-      multipart: false,
-      clientPayload: {},
-    };
-    setConfig(defaultConfig);
-    setCustomTypes('');
-    setFolderPath('');
-    setCustomPayload('');
-    setContentType('');
-    onConfigChange(defaultConfig);
-  }, [onConfigChange]);
+    dispatch({ type: 'RESET_TO_DEFAULTS' });
+  }, []);
 
   const handleTypesChange = useCallback((value: string) => {
-    setCustomTypes(value);
-    const types = value
-      .split(',')
-      .map(type => type.trim())
-      .filter(type => type.length > 0);
-    updateConfig({ allowedTypes: types.length > 0 ? types : [] });
-  }, [updateConfig]);
+    dispatch({ type: 'SET_CUSTOM_TYPES', payload: value });
+  }, []);
 
   const formatBytes = useMemo(() => (bytes: number) => {
     if (bytes === 0) return '0 B';
@@ -134,14 +211,14 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
                     <Input
                       id={maxSizeId}
                       type="number"
-                      value={Math.floor((config.maxSize || 0) / (1024 * 1024))}
+                      value={Math.floor((state.config.maxSize || 0) / (1024 * 1024))}
                       onChange={(e) => updateConfig({ maxSize: parseInt(e.target.value) * 1024 * 1024 })}
                       className="flex-1"
                     />
                     <span className="text-sm text-muted-foreground min-w-[3rem]">MB</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Current: {formatBytes(config.maxSize || 0)}
+                    Current: {formatBytes(state.config.maxSize || 0)}
                   </p>
                 </div>
 
@@ -150,15 +227,15 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
                   <Input
                     id={allowedTypesId}
                     placeholder="image/*, video/mp4, application/pdf"
-                    value={customTypes}
+                    value={state.customTypes}
                     onChange={(e) => handleTypesChange(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
                     Comma-separated MIME types. Leave empty for all types.
                   </p>
-                  {config.allowedTypes && config.allowedTypes.length > 0 && (
+                  {state.config.allowedTypes && state.config.allowedTypes.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {config.allowedTypes.map((type, index) => (
+                      {state.config.allowedTypes.map((type, index) => (
                         <Badge key={index} variant="secondary" className="text-xs">
                           {type}
                         </Badge>
@@ -183,7 +260,7 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
                   </p>
                 </div>
                 <Switch
-                  checked={config.addRandomSuffix}
+                  checked={state.config.addRandomSuffix}
                   onCheckedChange={(checked) => updateConfig({ addRandomSuffix: checked })}
                 />
               </div>
@@ -196,7 +273,7 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
                   </p>
                 </div>
                 <Switch
-                  checked={config.allowOverwrite}
+                  checked={state.config.allowOverwrite}
                   onCheckedChange={(checked) => updateConfig({ allowOverwrite: checked })}
                 />
               </div>
@@ -209,7 +286,7 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
                   </p>
                 </div>
                 <Switch
-                  checked={config.multipart}
+                  checked={state.config.multipart}
                   onCheckedChange={(checked) => updateConfig({ multipart: checked })}
                 />
               </div>
@@ -227,14 +304,14 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
                   <Input
                     id={cacheControlId}
                     type="number"
-                    value={Math.floor((config.cacheControlMaxAge || 0) / 3600)}
+                    value={Math.floor((state.config.cacheControlMaxAge || 0) / 3600)}
                     onChange={(e) => updateConfig({ cacheControlMaxAge: parseInt(e.target.value) * 3600 })}
                     className="flex-1"
                   />
                   <span className="text-sm text-muted-foreground min-w-[3rem]">hours</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Current: {formatDuration(config.cacheControlMaxAge || 0)}
+                  Current: {formatDuration(state.config.cacheControlMaxAge || 0)}
                 </p>
               </div>
 
@@ -244,7 +321,7 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
                   <Input
                     id={tokenValidityId}
                     type="number"
-                    value={config.validityMinutes || 60}
+                    value={state.config.validityMinutes || 60}
                     onChange={(e) => updateConfig({ validityMinutes: parseInt(e.target.value) })}
                     className="flex-1"
                   />
@@ -267,10 +344,9 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
                 <Input
                   id={folderPathId}
                   placeholder="uploads/images"
-                  value={folderPath}
+                  value={state.folderPath}
                   onChange={(e) => {
-                    setFolderPath(e.target.value);
-                    updateConfig({});
+                    dispatch({ type: 'SET_FOLDER_PATH', payload: e.target.value });
                   }}
                 />
                 <p className="text-xs text-muted-foreground">
@@ -283,10 +359,9 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
                 <Input
                   id={contentTypeId}
                   placeholder="image/jpeg, text/plain, application/pdf"
-                  value={contentType}
+                  value={state.contentType}
                   onChange={(e) => {
-                    setContentType(e.target.value);
-                    updateConfig({});
+                    dispatch({ type: 'SET_CONTENT_TYPE', payload: e.target.value });
                   }}
                 />
                 <p className="text-xs text-muted-foreground">
@@ -299,10 +374,9 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
                 <Input
                   id={customPayloadId}
                   placeholder={'{"category": "profile", "userId": "123"}'}
-                  value={customPayload}
+                  value={state.customPayload}
                   onChange={(e) => {
-                    setCustomPayload(e.target.value);
-                    updateConfig({});
+                    dispatch({ type: 'SET_CUSTOM_PAYLOAD', payload: e.target.value });
                   }}
                 />
                 <p className="text-xs text-muted-foreground">
@@ -318,22 +392,22 @@ export function AdvancedConfig({ onConfigChange, className = '' }: AdvancedConfi
               <div>
                 <span className="text-muted-foreground">Max Size:</span>
                 <br />
-                <span className="font-mono">{formatBytes(config.maxSize || 0)}</span>
+                <span className="font-mono">{formatBytes(state.config.maxSize || 0)}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Cache:</span>
                 <br />
-                <span className="font-mono">{formatDuration(config.cacheControlMaxAge || 0)}</span>
+                <span className="font-mono">{formatDuration(state.config.cacheControlMaxAge || 0)}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Token:</span>
                 <br />
-                <span className="font-mono">{config.validityMinutes}m</span>
+                <span className="font-mono">{state.config.validityMinutes}m</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Multipart:</span>
                 <br />
-                <span className="font-mono">{config.multipart ? 'Yes' : 'No'}</span>
+                <span className="font-mono">{state.config.multipart ? 'Yes' : 'No'}</span>
               </div>
             </div>
           </div>

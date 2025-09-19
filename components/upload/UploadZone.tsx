@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 interface UploadZoneProps {
   onUploadComplete?: (result: PutBlobResult, originalFile: File) => void;
   onUploadError?: (error: string) => void;
+  onUploadStart?: (files: File[]) => void;
   options?: UploadOptions;
   accept?: string;
   multiple?: boolean;
@@ -24,6 +25,7 @@ interface UploadZoneProps {
 export function UploadZone({
   onUploadComplete,
   onUploadError,
+  onUploadStart,
   options = {},
   accept,
   multiple = false,
@@ -65,6 +67,9 @@ export function UploadZone({
     const files = Array.from(e.dataTransfer.files);
     if (files.length === 0) return;
 
+    // React 19 optimistic update - show files immediately
+    onUploadStart?.(files);
+
     let toastId: string | number | undefined;
     
     try {
@@ -88,11 +93,14 @@ export function UploadZone({
       }
       onUploadError?.(errorMessage);
     }
-  }, [disabled, isUploading, multiple, options, uploadFile, uploadMultipleFiles, onUploadComplete, onUploadError]);
+  }, [disabled, isUploading, multiple, options, uploadFile, uploadMultipleFiles, onUploadComplete, onUploadError, onUploadStart]);
 
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
+
+    // React 19 optimistic update - show files immediately
+    onUploadStart?.(files);
 
     let toastId: string | number | undefined;
 
@@ -121,7 +129,7 @@ export function UploadZone({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  }, [multiple, options, uploadFile, uploadMultipleFiles, onUploadComplete, onUploadError]);
+  }, [multiple, options, uploadFile, uploadMultipleFiles, onUploadComplete, onUploadError, onUploadStart]);
 
   const openFileDialog = useCallback(() => {
     if (!disabled && !isUploading) {
