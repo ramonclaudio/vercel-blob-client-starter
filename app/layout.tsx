@@ -1,3 +1,5 @@
+// 'use cache'; // Enable for React 19 caching with Next.js canary + experimental.useCache: true
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
@@ -129,7 +131,7 @@ const jsonLd: WithContext<SoftwareApplication> = {
   keywords: 'vercel, blob, upload, nextjs, react, typescript, client-side, file-upload, drag-drop, shadcn'
 };
 
-export default function RootLayout({
+export default async function RootLayout({ // async required for 'use cache'
   children,
 }: Readonly<{
   children: React.ReactNode;

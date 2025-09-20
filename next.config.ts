@@ -39,6 +39,15 @@ const nextConfig: NextConfig = {
   experimental: {
     scrollRestoration: true,
     webpackMemoryOptimizations: true,
+
+    // React 19 caching features (requires Next.js canary):
+    // useCache: true,
+    // cacheComponents: true,
+
+    // Automatically enabled by cacheComponents (requires Next.js canary):
+    // ppr: true,
+    // enablePrerenderSourceMaps: true,
+    // rdcForNavigations: true,
   },
 
   async headers() {
