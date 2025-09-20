@@ -1,6 +1,6 @@
 'use cache';
 
-import { cacheTag } from 'next/cache';
+// import { cacheTag } from 'next/cache'; // Next.js canary only
 
 export async function getUserPreferences(userId: string): Promise<{
   theme: 'light' | 'dark';
@@ -12,7 +12,7 @@ export async function getUserPreferences(userId: string): Promise<{
   'use cache';
 
   // Tag this cache entry for user-specific invalidation
-  cacheTag(`user-preferences-${userId}`);
+  // cacheTag(`user-preferences-${userId}`); // Next.js canary only
 
   return {
     theme: 'light',
@@ -31,7 +31,7 @@ export async function getBlobConfig(): Promise<{
   'use cache';
 
   // Tag this cache entry for blob configuration invalidation
-  cacheTag('blob-config');
+  // cacheTag('blob-config'); // Next.js canary only
 
   return {
     allowedTypes: [
@@ -57,7 +57,7 @@ export async function getUploadStatistics(): Promise<{
   'use cache';
 
   // Tag this cache entry for statistics invalidation
-  cacheTag('upload-statistics');
+  // cacheTag('upload-statistics'); // Next.js canary only
 
   return {
     totalUploads: 1250,
@@ -74,7 +74,7 @@ export async function getSystemHealth(): Promise<{
   'use cache';
 
   // Tag this cache entry for system health invalidation
-  cacheTag('system-health');
+  // cacheTag('system-health'); // Next.js canary only
 
   return {
     status: 'healthy',

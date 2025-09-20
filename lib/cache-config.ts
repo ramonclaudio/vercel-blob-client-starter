@@ -1,12 +1,12 @@
 'use cache';
 
-import { cacheLife } from 'next/cache';
+// import { cacheLife } from 'next/cache'; // Next.js canary only
 
 export async function getStaticContent(): Promise<{ version: string; lastUpdated: string }> {
   'use cache';
 
   // Configure cache lifetime for static content (1 hour)
-  cacheLife('hours');
+  // cacheLife('hours'); // Next.js canary only
 
   return {
     version: '1.0.2',
@@ -18,7 +18,7 @@ export async function getBlobStorageStats(): Promise<{ quota: string; usage: str
   'use cache';
 
   // Configure cache lifetime for storage stats (5 minutes)
-  cacheLife('minutes');
+  // cacheLife('minutes'); // Next.js canary only
 
   return {
     quota: '100GB',
@@ -34,7 +34,7 @@ export async function getFeatureFlags(): Promise<{
   'use cache';
 
   // Configure cache lifetime for feature flags (30 minutes)
-  cacheLife('hours');
+  // cacheLife('hours'); // Next.js canary only
 
   return {
     advancedMode: true,
@@ -51,7 +51,7 @@ export async function getTechnologiesInfo(): Promise<Array<{
   'use cache';
 
   // Configure cache lifetime for technology info (1 day)
-  cacheLife('days');
+  // cacheLife('days'); // Next.js canary only
 
   return [
     {
