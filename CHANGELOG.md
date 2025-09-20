@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Production Compatibility**: Resolved Next.js stable compatibility issues (commit 234a827, 088baba)
+  - Comment out canary-only APIs (`cacheLife`, `cacheTag`, `revalidateTag`) for stable Next.js compatibility
+  - Allow `unsafe-inline` for script-src and style-src in CSP for Next.js React 19 compatibility
+  - Fixed Vercel deployment build failures while preserving React 19 cache implementation
+  - APIs remain ready for activation with Next.js canary upgrade
+
+- **Accessibility Compliance**: Enhanced mobile navigation accessibility (commit 0c998c0)
+  - Added `SheetDescription` component to mobile navigation sheet
+  - Resolved Radix UI warning: "Missing Description or aria-describedby for DialogContent"
+  - Enhanced screen reader support with descriptive navigation context
+  - Improved WCAG compliance for mobile users
+
 ### React 19 Hooks Optimization - Advanced State Management
 
 - **useReducer Implementation**: Replace useState with useReducer for complex state management

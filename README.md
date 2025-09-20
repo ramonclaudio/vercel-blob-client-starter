@@ -19,6 +19,10 @@ Complete client-side Vercel Blob starter with Next.js 15 & React 19. Features: d
 - **Cancel Uploads** - Full abort signal support for all operations
 - **Real-time Progress** - Live upload progress with detailed feedback
 - **Type Safe** - Full TypeScript support with strict configuration
+- **React 19 Optimized** - Advanced hooks patterns and state management
+- **Accessibility First** - Full WCAG compliance with skip links and screen reader support
+- **Error Resilience** - Comprehensive error boundaries and recovery system
+- **Navigation Safety** - Protected navigation with data loss prevention
 
 ## 🛠 Tech Stack
 
@@ -94,6 +98,34 @@ Now upload callbacks will work properly in your local development environment!
 
 > **Note**: This is only needed for local development. When deployed to Vercel, the callback URL is automatically configured using Vercel's system environment variables.
 
+### React 19 Cache Features (Next.js Canary)
+
+This project includes comprehensive React 19 `'use cache'` implementation that's ready to activate:
+
+1. **Upgrade to Next.js canary** (optional):
+   ```bash
+   pnpm add next@canary
+   ```
+
+2. **Enable experimental caching in `next.config.ts`**:
+   ```typescript
+   experimental: {
+     useCache: true,
+     cacheComponents: true,
+   }
+   ```
+
+3. **Uncomment cache directives** in these files:
+   - `app/layout.tsx` - File-level caching
+   - `lib/cached-utils.ts` - Function-level caching
+   - `lib/cache-config.ts` - Cache lifecycle management
+   - `lib/cache-tags.ts` - Cache tagging for invalidation
+   - `lib/cache-invalidation.ts` - Server actions for cache control
+
+4. **Restart development server** to enable caching features.
+
+> **Note**: Cache features work with stable Next.js but are commented out for compatibility. Uncomment when using Next.js canary with experimental flags enabled.
+
 ## 📖 What You'll Learn
 
 This starter demonstrates **every client-side Vercel Blob feature** with complete SDK compliance:
@@ -147,6 +179,32 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 - ✅ **Social media ready** for Facebook, LinkedIn, Twitter sharing
 - ✅ **Extensionless image URLs** following NextJS 15 best practices
 
+### React 19 Advanced Features
+- ✅ **useReducer State Management** - Complex state consolidation with predictable transitions
+- ✅ **useOptimistic Instant Feedback** - Zero-latency UI updates with automatic rollback
+- ✅ **startTransition Non-blocking** - Smooth updates that maintain UI responsiveness
+- ✅ **useId Accessibility** - Dynamic ID generation for form elements and ARIA compliance
+- ✅ **useMemo Performance** - Memoized expensive calculations (formatBytes, formatDuration)
+- ✅ **useCallback Optimization** - Optimized callbacks to prevent unnecessary re-renders
+- ✅ **'use cache' Directive** - React 19 function-level caching (ready for Next.js canary)
+
+### Accessibility & Navigation
+- ✅ **WCAG Compliance** - Full Web Content Accessibility Guidelines adherence
+- ✅ **Skip to Content** - Keyboard navigation with proper focus management
+- ✅ **Screen Reader Support** - Semantic HTML and ARIA attributes throughout
+- ✅ **Navigation Protection** - Prevent accidental data loss during uploads
+- ✅ **Safe Link Components** - Optimized internal navigation with prefetching
+- ✅ **Mobile Touch Targets** - 44px minimum touch targets for accessibility
+- ✅ **Motion Preferences** - Respects `prefers-reduced-motion` for accessibility
+
+### Error Handling & Resilience
+- ✅ **Global Error Boundary** - Application-wide error catching and recovery
+- ✅ **Page-specific Boundaries** - Isolated error handling for upload and gallery pages
+- ✅ **Retry Mechanisms** - Automatic and manual retry for failed operations
+- ✅ **Advanced Recovery** - Smart error recovery with exponential backoff
+- ✅ **User-friendly Messages** - Clear error communication with actionable guidance
+- ✅ **Custom 404 Page** - Enhanced not-found experience with navigation
+
 ## 🏗 Project Structure
 
 ```
@@ -158,39 +216,63 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 │   │   ├── metadata/route.ts      # Blob metadata retrieval
 │   │   └── list/route.ts          # Blob listing with pagination
 │   ├── upload/
-│   │   ├── page.tsx               # Main upload interface
-│   │   └── error.tsx              # Upload page error boundary
+│   │   ├── page.tsx               # Main upload interface with React 19 hooks
+│   │   ├── error.tsx              # Upload page error boundary
+│   │   └── loading.tsx            # Upload page loading states
 │   ├── gallery/
-│   │   ├── page.tsx               # File gallery with all operations
-│   │   └── error.tsx              # Gallery page error boundary
+│   │   ├── page.tsx               # File gallery with optimistic updates
+│   │   ├── error.tsx              # Gallery page error boundary
+│   │   └── loading.tsx            # Gallery page loading states
 │   ├── robots.txt/route.ts        # Dynamic robots.txt generation
 │   ├── sitemap.xml/route.ts       # Dynamic sitemap.xml generation
 │   ├── opengraph-image.tsx        # Dynamic OpenGraph image (1200x630)
 │   ├── twitter-image.tsx          # Dynamic Twitter card image (1200x600)
 │   ├── global-error.tsx           # Global error boundary
 │   ├── not-found.tsx              # Custom 404 page
+│   ├── viewport.ts                # Viewport configuration (Next.js 15)
 │   ├── favicon.ico                # Site favicon
-│   └── layout.tsx                 # Root layout with enhanced metadata
+│   └── layout.tsx                 # Root layout with React 19 cache directives
 ├── components/
-│   ├── ui/                        # shadcn/ui components
+│   ├── ui/                        # shadcn/ui components (22 components)
 │   │   ├── error-boundary.tsx     # Reusable error boundary component
-│   │   └── error-display.tsx      # Error display with retry functionality
+│   │   ├── error-display.tsx      # Error display with retry functionality
+│   │   ├── skip-link.tsx          # Accessibility skip navigation
+│   │   ├── safe-link.tsx          # Safe internal navigation component
+│   │   ├── hover-prefetch-link.tsx # Performance-optimized navigation
+│   │   ├── search-button.tsx      # Next.js 15 Form integration
+│   │   ├── text-units.tsx         # Screen reader text utilities
+│   │   └── skeleton.tsx           # Loading state component
+│   ├── layout/
+│   │   ├── Header.tsx             # Navigation with accessibility features
+│   │   └── Footer.tsx             # Footer with safe navigation
+│   ├── home/                      # React 19 cached components
+│   │   ├── FeaturesShowcase.tsx   # Cached features display
+│   │   ├── DemoModes.tsx          # Cached demo sections
+│   │   ├── ModernTechnologies.tsx # Cached tech stack
+│   │   └── DeployToVercel.tsx     # Cached deployment section
 │   ├── upload/
-│   │   ├── UploadZone.tsx         # Drag & drop component
-│   │   └── AdvancedConfig.tsx     # Configuration panel
+│   │   ├── UploadZone.tsx         # Drag & drop with useOptimistic
+│   │   └── AdvancedConfig.tsx     # useReducer state management
 │   └── gallery/
-│       └── FileGallery.tsx        # File management interface
+│       ├── FileGallery.tsx        # File management with optimistic updates
+│       └── MetadataDialog.tsx     # File metadata display
+├── contexts/
+│   └── navigation-blocker.tsx     # Navigation protection context
 ├── hooks/
-│   ├── useClientUpload.ts         # Upload logic with progress
-│   ├── useDeleteBlob.ts           # Blob deletion with abort
-│   ├── useCopyBlob.ts             # Blob duplication
-│   ├── useBlobMetadata.ts         # Metadata retrieval
-│   └── useListBlobs.ts            # Blob listing with pagination
+│   ├── useClientUpload.ts         # Upload with startTransition optimization
+│   ├── useDeleteBlob.ts           # Blob deletion with abort signals
+│   ├── useCopyBlob.ts             # Optimistic blob duplication
+│   ├── useBlobMetadata.ts         # Metadata retrieval with error recovery
+│   └── useListBlobs.ts            # Paginated listing with performance hooks
 ├── lib/
-│   ├── utils.ts                   # Utility functions
-│   ├── image-optimization.ts      # Image optimization utilities
-│   └── error-recovery.ts          # Advanced error recovery & retry logic
-└── middleware.ts                  # Geo-adaptive caching & security headers
+│   ├── utils.ts                   # Core utility functions
+│   ├── image-optimization.ts      # Next.js Image optimization utilities
+│   ├── error-recovery.ts          # Advanced error recovery & retry logic
+│   ├── cached-utils.ts            # React 19 cached utility functions
+│   ├── cache-config.ts            # Cache lifecycle management
+│   ├── cache-tags.ts              # Cache tagging for invalidation
+│   └── cache-invalidation.ts      # Server actions for cache management
+└── middleware.ts                  # Geo-adaptive caching & CSP security headers
 ```
 
 ## 🎯 Key Implementation Highlights
@@ -199,12 +281,28 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 - **Standard Upload**: Simple drag & drop with sensible defaults
 - **Advanced Configuration**: Complete control over all SDK parameters
 
+### React 19 Advanced Patterns
+- **useReducer Architecture** - Complex state management with predictable transitions
+- **useOptimistic Updates** - Zero-latency UI feedback for delete/copy operations
+- **startTransition Performance** - Non-blocking state updates for smooth UX
+- **'use cache' Implementation** - Function-level caching ready for Next.js canary
+- **Performance Hooks** - useMemo and useCallback optimization throughout
+- **Dynamic ID Generation** - useId for accessibility-compliant form elements
+
+### Accessibility & Navigation Excellence
+- **WCAG 2.1 Compliance** - Full accessibility standards implementation
+- **Skip Navigation** - Keyboard users can jump directly to main content
+- **Navigation Protection** - Prevent data loss during uploads with blocker context
+- **Screen Reader Support** - Comprehensive ARIA labels and semantic HTML
+- **Mobile Accessibility** - 44px touch targets and optimized mobile experience
+- **Motion Preferences** - Respects user's reduced motion settings
+
 ### Enterprise-Grade Features
 - **Professional UI/UX** with modern drag & drop interface
-- **Comprehensive Error Handling** with user-friendly messages
-- **State Management** using custom React hooks
-- **Real-time Updates** with toast notifications
-- **Responsive Design** that works on all devices
+- **Comprehensive Error Handling** with user-friendly messages and retry mechanisms
+- **State Management** using React 19 optimized custom hooks
+- **Real-time Updates** with toast notifications and optimistic feedback
+- **Responsive Design** that works on all devices with accessibility focus
 
 ## 🔧 Environment Variables
 
@@ -267,6 +365,8 @@ View source on your deployed site to see the auto-generated meta tags:
 - [Vercel Blob Documentation](https://vercel.com/docs/storage/vercel-blob)
 - [Client-Side Uploads Guide](https://vercel.com/docs/storage/vercel-blob/client-uploads)
 - [Next.js App Router](https://nextjs.org/docs/app)
+- [React 19 Documentation](https://react.dev/blog/2024/04/25/react-19)
+- [React Hooks Reference](https://react.dev/reference/react/hooks)
 - [shadcn/ui Components](https://ui.shadcn.com)
 - [Tailwind CSS v4](https://tailwindcss.com)
 
@@ -276,6 +376,20 @@ View source on your deployed site to see the auto-generated meta tags:
 - [Dynamic OG Images with `next/og`](https://vercel.com/docs/og-image-generation)
 - [Twitter Cards Documentation](https://developer.twitter.com/en/docs/twitter-for-websites/cards)
 - [robots.txt Best Practices](https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt)
+
+### React 19 & Performance
+- [React 19 useOptimistic Hook](https://react.dev/reference/react/useOptimistic)
+- [React 19 startTransition](https://react.dev/reference/react/startTransition)
+- [React 19 useReducer Guide](https://react.dev/reference/react/useReducer)
+- [React 19 'use cache' Directive](https://react.dev/reference/rsc/use-cache)
+- [Next.js Caching Documentation](https://nextjs.org/docs/app/building-your-application/caching)
+
+### Accessibility & UX
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+- [Web Content Accessibility Guidelines](https://www.w3.org/WAI/standards-guidelines/wcag/)
+- [MDN Accessibility Guide](https://developer.mozilla.org/en-US/docs/Web/Accessibility)
+- [Next.js Accessibility Features](https://nextjs.org/docs/app/building-your-application/optimizing/accessibility)
+- [React Accessibility Documentation](https://react.dev/learn/accessibility)
 
 ## 🤝 Contributing
 
