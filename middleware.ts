@@ -15,8 +15,8 @@ export function middleware(request: NextRequest) {
 
   const cspHeader = [
     "default-src 'self'",
-    `script-src 'self'${isDev ? " 'unsafe-eval' 'unsafe-inline'" : ''} https://vercel.live`,
-    `style-src 'self'${isDev ? " 'unsafe-inline'" : ''}`,
+    `script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live`,
+    `style-src 'self' 'unsafe-inline'`,
     "img-src 'self' data: blob: https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com",
     "font-src 'self' data:",
     "connect-src 'self' https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com https://vercel.live",
