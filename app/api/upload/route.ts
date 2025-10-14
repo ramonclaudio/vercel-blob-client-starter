@@ -76,16 +76,29 @@ export async function POST(request: Request): Promise<NextResponse> {
       }
     });
   } catch (error) {
+    let errorMessage = 'Upload failed';
+    let statusCode = 400;
+    let isTokenMissing = false;
+
     if (error instanceof BlobAccessError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 },
-      );
+      errorMessage = error.message;
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+      if (errorMessage.includes('No token found') || errorMessage.includes('BLOB_READ_WRITE_TOKEN')) {
+        errorMessage = 'Vercel Blob token is not configured. Please set BLOB_READ_WRITE_TOKEN in your environment variables.';
+        isTokenMissing = true;
+        statusCode = 503;
+      }
     } else {
-      return NextResponse.json(
-        { error: error instanceof Error ? error.message : String(error) },
-        { status: 400 },
-      );
+      errorMessage = String(error);
     }
+
+    return NextResponse.json(
+      {
+        error: errorMessage,
+        isTokenMissing,
+      },
+      { status: statusCode },
+    );
   }
 }

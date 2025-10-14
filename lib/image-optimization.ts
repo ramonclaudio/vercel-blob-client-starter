@@ -5,10 +5,10 @@ export const blobImageLoader = ({ src, width, quality }: {
 }) => {
   const params = new URLSearchParams();
   params.set('w', width.toString());
-  params.set('q', (quality || 85).toString());
+  params.set('q', (quality || 75).toString());
 
   return src.includes('blob.vercel-storage.com')
-    ? `/_vercel/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality || 85}`
+    ? `/_vercel/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality || 75}`
     : src;
 };
 

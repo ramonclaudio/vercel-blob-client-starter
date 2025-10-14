@@ -23,7 +23,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'),
   title: "Vercel Blob Client Starter Kit",
-  description: "Comprehensive showcase of Vercel Blob client-side upload features built with Next.js 15, React 19, and shadcn/ui",
+  description: "Comprehensive showcase of Vercel Blob client-side upload features built with Next.js 16, React 19, and shadcn/ui",
   keywords: ["vercel", "blob", "upload", "nextjs", "react", "shadcn", "tailwind", "typescript", "client-side", "file-upload", "drag-drop"],
   authors: [{ name: "Vercel" }],
   creator: "Vercel",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Vercel Blob Client Starter Kit",
-    description: "Ultimate showcase of Vercel Blob client-side features with Next.js 15 and React 19",
+    description: "Ultimate showcase of Vercel Blob client-side features with Next.js 16 and React 19",
     type: "website",
     url: "https://vercel-blob-client-starter.vercel.app",
     siteName: "Vercel Blob Client Starter Kit",
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Vercel Blob Client Starter Kit",
-    description: "Complete client-side upload solution with Next.js 15, React 19, and modern UI components",
+    description: "Complete client-side upload solution with Next.js 16, React 19, and modern UI components",
     creator: "@vercel",
     site: "@vercel",
     images: [
@@ -96,7 +96,7 @@ const jsonLd: WithContext<SoftwareApplication> = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
   name: 'Vercel Blob Client Starter',
-  description: 'Complete client-side Vercel Blob starter with Next.js 15 & React 19. Features drag & drop uploads, progress tracking, multipart support, and advanced configuration.',
+  description: 'Complete client-side Vercel Blob starter with Next.js 16 & React 19. Features drag & drop uploads, progress tracking, multipart support, and advanced configuration.',
   applicationCategory: 'DeveloperApplication',
   operatingSystem: 'Web Browser',
   offers: {

@@ -65,8 +65,8 @@ export default async function Home() {
             </h1>
           </div>
           <p className="text-xl lg:text-2xl text-muted-foreground mb-8 max-w-4xl mx-auto leading-relaxed">
-            The ultimate showcase of Vercel Blob client-side upload features. 
-            Built with Next.js 15, React 19, Tailwind CSS v4, and shadcn/ui.
+            The ultimate showcase of Vercel Blob client-side upload features.
+            Built with Next.js 16, React 19, Tailwind CSS v4, and shadcn/ui.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button asChild size="lg" className="text-lg px-8">

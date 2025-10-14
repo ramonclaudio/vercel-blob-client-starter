@@ -3,14 +3,15 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Download, Eye, Trash2, Copy, ExternalLink, Files, Info } from 'lucide-react';
-import { BLUR_DATA_URL, getImageSizes } from '@/lib/image-optimization';
+import { BLUR_DATA_URL, getImageSizes, shouldOptimizeImage } from '@/lib/image-optimization';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { type PutBlobResult } from '@vercel/blob';
 import { useCopyBlob } from '@/hooks/useCopyBlob';
 import { useBlobMetadata } from '@/hooks/useBlobMetadata';
+import { MetadataDialog } from './MetadataDialog';
 import { toast } from 'sonner';
 import { type OptimisticFileItem } from '@/app/upload/page';
 
@@ -154,7 +155,7 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
 
     switch (fileType) {
       case 'image':
-        const shouldOptimize = !file.size || file.size > 10240;
+        const shouldOptimize = shouldOptimizeImage(file.url, file.size);
         const isPriority = index < 4;
 
         return (
@@ -331,16 +332,24 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
             <CardFooter className="p-4 pt-0 flex flex-wrap gap-2">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={() => setSelectedFile(file)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedFile(file)}
+                    aria-label={`Preview ${file.pathname?.split('/').pop() || 'file'}`}
+                  >
                     <Eye className="w-4 h-4 mr-1" />
                     Preview
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-7xl w-[95vw] max-h-[95vh] overflow-auto">
+                <DialogContent className="max-w-7xl w-[95vw] max-h-[95vh] overflow-auto" aria-describedby="preview-description">
                   <DialogHeader>
                     <DialogTitle className="text-base font-medium">
                       {truncateFilename(file.pathname || 'Unnamed file')}
                     </DialogTitle>
+                    <DialogDescription id="preview-description">
+                      Full-size preview of the selected file
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="flex-1 overflow-auto">
                     {selectedFile && renderFileModal(selectedFile)}
@@ -352,6 +361,7 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
                 variant="outline"
                 size="sm"
                 onClick={() => window.open(file.downloadUrl, '_blank')}
+                aria-label={`Download ${file.pathname?.split('/').pop() || 'file'}`}
               >
                 <Download className="w-4 h-4 mr-1" />
                 Download
@@ -361,6 +371,7 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
                 variant="outline"
                 size="sm"
                 onClick={() => file.url && copyToClipboard(file.url)}
+                aria-label={`Copy URL for ${file.pathname?.split('/').pop() || 'file'}`}
               >
                 <Copy className="w-4 h-4 mr-1" />
                 Copy URL
@@ -370,6 +381,7 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
                 variant="outline"
                 size="sm"
                 onClick={() => window.open(file.url, '_blank')}
+                aria-label={`Open ${file.pathname?.split('/').pop() || 'file'} in new tab`}
               >
                 <ExternalLink className="w-4 h-4 mr-1" />
                 Open
@@ -382,6 +394,7 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
                   onClick={() => handleGetMetadata(file)}
                   disabled={isLoadingMetadata}
                   className="text-blue-600 hover:text-blue-700"
+                  aria-label={`View metadata for ${file.pathname?.split('/').pop() || 'file'}`}
                 >
                   <Info className="w-4 h-4 mr-1" />
                   Metadata
@@ -395,6 +408,7 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
                   onClick={() => handleCopyFile(file)}
                   disabled={isCopying}
                   className="text-orange-600 hover:text-orange-700"
+                  aria-label={`Duplicate ${file.pathname?.split('/').pop() || 'file'}`}
                 >
                   <Files className="w-4 h-4 mr-1" />
                   Duplicate File
@@ -407,6 +421,7 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
                   size="sm"
                   onClick={() => onDelete(file)}
                   className="text-destructive hover:text-destructive"
+                  aria-label={`Delete ${file.pathname?.split('/').pop() || 'file'}`}
                 >
                   <Trash2 className="w-4 h-4 mr-1" />
                   Delete
@@ -417,92 +432,16 @@ export function FileGallery({ files, onDelete, onCopy, showAdvancedFeatures = fa
         ))}
       </div>
 
-      <Dialog open={!!metadataFile} onOpenChange={(open) => !open && setMetadataFile(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center">
-              <Info className="w-5 h-5 mr-2" />
-              Blob Metadata
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {metadataFile && (
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">File Information</h4>
-                <div className="text-sm space-y-1">
-                  <div><span className="font-medium">Filename:</span> {metadataFile.pathname?.split('/').pop() || 'Unknown'}</div>
-                  <div><span className="font-medium">Full Path:</span> {metadataFile.pathname || 'Unknown'}</div>
-                </div>
-              </div>
-            )}
-
-            {isLoadingMetadata && (
-              <div className="flex items-center justify-center p-8">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                <span className="ml-3">Loading metadata...</span>
-              </div>
-            )}
-
-            {metadataError && (
-              <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg">
-                <h4 className="font-medium text-destructive mb-2">Error</h4>
-                <p className="text-sm text-destructive">{metadataError}</p>
-              </div>
-            )}
-
-            {metadata && !isLoadingMetadata && (
-              <div className="space-y-4">
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-3">Blob Details</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium text-muted-foreground">Size:</span>
-                      <div className="font-mono">{formatFileSize(metadata.size)}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Content Type:</span>
-                      <div className="font-mono break-all">{metadata.contentType}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Uploaded At:</span>
-                      <div className="font-mono">{formatDate(metadata.uploadedAt.toISOString())}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Cache Control:</span>
-                      <div className="font-mono break-all">{metadata.cacheControl}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-3">URLs</h4>
-                  <div className="space-y-3 text-sm">
-                    <div>
-                      <span className="font-medium text-muted-foreground">View URL:</span>
-                      <div className="font-mono text-xs break-all bg-background p-2 rounded border mt-1">
-                        {metadata.url}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-muted-foreground">Download URL:</span>
-                      <div className="font-mono text-xs break-all bg-background p-2 rounded border mt-1">
-                        {metadata.downloadUrl}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-3">Content Disposition</h4>
-                  <div className="font-mono text-xs break-all bg-background p-2 rounded border">
-                    {metadata.contentDisposition}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <MetadataDialog
+        isOpen={!!metadataFile}
+        onClose={() => setMetadataFile(null)}
+        metadataFile={metadataFile}
+        isLoadingMetadata={isLoadingMetadata}
+        metadata={metadata}
+        metadataError={metadataError}
+        formatFileSize={formatFileSize}
+        formatDate={formatDate}
+      />
     </div>
   );
 }

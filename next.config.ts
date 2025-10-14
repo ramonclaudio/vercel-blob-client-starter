@@ -40,14 +40,31 @@ const nextConfig: NextConfig = {
     scrollRestoration: true,
     webpackMemoryOptimizations: true,
 
-    // React 19 caching features (requires Next.js canary):
-    // useCache: true,
-    // cacheComponents: true,
+    // React 19 caching features (Next.js 16 canary)
+    // This enables: use cache, cacheLife, cacheTag, and PPR
+    // To use PPR on specific routes, add: export const experimental_ppr = true
+    cacheComponents: true,
 
-    // Automatically enabled by cacheComponents (requires Next.js canary):
-    // ppr: true,
-    // enablePrerenderSourceMaps: true,
-    // rdcForNavigations: true,
+    // Enable source maps for prerendering (useful for debugging)
+    enablePrerenderSourceMaps: true,
+
+    // Enable Runtime Data Cache for navigations (performance optimization)
+    rdcForNavigations: true,
+
+    // Turbopack filesystem caching for faster dev restarts (used by all Vercel apps)
+    turbopackFileSystemCacheForDev: true,
+
+    // Client-side route segment caching for improved navigation performance
+    clientSegmentCache: true,
+
+    // Note: inlineCss disabled due to CSP conflicts with style-src 'unsafe-inline'
+    // inlineCss: true,
+
+    // Fine-tune stale times for dynamic and static content
+    staleTimes: {
+      dynamic: 30,  // 30 seconds for dynamic content
+      static: 180,  // 3 minutes for static content
+    },
   },
 
   async headers() {

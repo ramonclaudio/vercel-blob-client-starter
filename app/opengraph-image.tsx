@@ -72,7 +72,7 @@ export default async function Image() {
             maxWidth: 800,
           }}
         >
-          Complete client-side upload solution with Next.js 15 and React 19
+          Complete client-side upload solution with Next.js 16 and React 19
         </div>
 
         <div
@@ -90,7 +90,7 @@ export default async function Image() {
               fontSize: 18,
             }}
           >
-            Next.js 15
+            Next.js 16
           </div>
           <div
             style={{

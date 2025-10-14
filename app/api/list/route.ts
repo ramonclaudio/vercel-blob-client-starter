@@ -1,17 +1,21 @@
 import { list, BlobAccessError } from '@vercel/blob';
 import { NextResponse } from 'next/server';
+import { connection } from 'next/server';
 
 export async function GET(request: Request) {
+  await connection();
+
   const abortController = new AbortController();
-  
+
   const timeoutId = setTimeout(() => {
     abortController.abort();
   }, 30000);
 
   try {
     const { searchParams } = new URL(request.url);
-    
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined;
+
+    const limitParam = searchParams.get('limit');
+    const limit = limitParam ? parseInt(limitParam) : undefined;
     const prefix = searchParams.get('prefix') || undefined;
     const cursor = searchParams.get('cursor') || undefined;
     const mode = searchParams.get('mode') as 'expanded' | 'folded' | undefined;
@@ -25,7 +29,7 @@ export async function GET(request: Request) {
     });
 
     clearTimeout(timeoutId);
-    return Response.json({
+    return NextResponse.json({
       blobs: result.blobs,
       cursor: result.cursor,
       hasMore: result.hasMore,
@@ -41,9 +45,10 @@ export async function GET(request: Request) {
   } catch (error) {
     clearTimeout(timeoutId);
     console.error('List blobs error:', error);
-    
+
     let errorMessage = 'Failed to list blobs';
     let statusCode = 500;
+    let isTokenMissing = false;
 
     if (error instanceof BlobAccessError) {
       errorMessage = `Blob access error: ${error.message}`;
@@ -53,12 +58,17 @@ export async function GET(request: Request) {
       if (error.name === 'AbortError') {
         errorMessage = 'List operation was cancelled';
         statusCode = 499;
+      } else if (error.message.includes('No token found') || error.message.includes('BLOB_READ_WRITE_TOKEN')) {
+        errorMessage = 'Vercel Blob token is not configured. Please set BLOB_READ_WRITE_TOKEN in your environment variables.';
+        isTokenMissing = true;
+        statusCode = 503;
       }
     }
 
     return NextResponse.json(
-      { 
+      {
         error: errorMessage,
+        isTokenMissing,
         details: process.env.NODE_ENV === 'development' ? String(error) : undefined
       },
       { status: statusCode }
