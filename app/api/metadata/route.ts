@@ -1,9 +1,12 @@
 import { head, BlobAccessError } from '@vercel/blob';
 import { NextResponse } from 'next/server';
+import { connection } from 'next/server';
 
 export async function GET(request: Request) {
+  await connection();
+
   const abortController = new AbortController();
-  
+
   const timeoutId = setTimeout(() => {
     abortController.abort();
   }, 30000);
@@ -25,7 +28,7 @@ export async function GET(request: Request) {
     });
 
     clearTimeout(timeoutId);
-    return Response.json(blobDetails, {
+    return NextResponse.json(blobDetails, {
       headers: {
         'Cache-Control': 'public, max-age=0, s-maxage=600, stale-while-revalidate=3600',
         'CDN-Cache-Control': 'public, max-age=600, stale-while-revalidate=3600',
@@ -36,9 +39,10 @@ export async function GET(request: Request) {
   } catch (error) {
     clearTimeout(timeoutId);
     console.error('Metadata error:', error);
-    
+
     let errorMessage = 'Failed to get blob metadata';
     let statusCode = 500;
+    let isTokenMissing = false;
 
     if (error instanceof BlobAccessError) {
       errorMessage = `Blob access error: ${error.message}`;
@@ -48,16 +52,20 @@ export async function GET(request: Request) {
       if (error.name === 'AbortError') {
         errorMessage = 'Metadata operation was cancelled';
         statusCode = 499;
-      }
-      if (error.name === 'BlobNotFoundError') {
+      } else if (error.name === 'BlobNotFoundError') {
         errorMessage = 'Blob not found';
         statusCode = 404;
+      } else if (errorMessage.includes('No token found') || errorMessage.includes('BLOB_READ_WRITE_TOKEN')) {
+        errorMessage = 'Vercel Blob token is not configured. Please set BLOB_READ_WRITE_TOKEN in your environment variables.';
+        isTokenMissing = true;
+        statusCode = 503;
       }
     }
 
     return NextResponse.json(
-      { 
+      {
         error: errorMessage,
+        isTokenMissing,
         details: process.env.NODE_ENV === 'development' ? String(error) : undefined
       },
       { status: statusCode }

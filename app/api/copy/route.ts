@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 export async function PUT(request: Request) {
   const abortController = new AbortController();
-  
+
   const timeoutId = setTimeout(() => {
     abortController.abort();
   }, 30000);
@@ -36,14 +36,15 @@ export async function PUT(request: Request) {
     });
 
     clearTimeout(timeoutId);
-    return Response.json(blob);
+    return NextResponse.json(blob);
 
   } catch (error) {
     clearTimeout(timeoutId);
     console.error('Copy error:', error);
-    
+
     let errorMessage = 'Failed to copy blob';
     let statusCode = 500;
+    let isTokenMissing = false;
 
     if (error instanceof BlobAccessError) {
       errorMessage = `Blob access error: ${error.message}`;
@@ -53,12 +54,17 @@ export async function PUT(request: Request) {
       if (error.name === 'AbortError') {
         errorMessage = 'Copy operation was cancelled';
         statusCode = 499;
+      } else if (errorMessage.includes('No token found') || errorMessage.includes('BLOB_READ_WRITE_TOKEN')) {
+        errorMessage = 'Vercel Blob token is not configured. Please set BLOB_READ_WRITE_TOKEN in your environment variables.';
+        isTokenMissing = true;
+        statusCode = 503;
       }
     }
 
     return NextResponse.json(
-      { 
+      {
         error: errorMessage,
+        isTokenMissing,
         details: process.env.NODE_ENV === 'development' ? String(error) : undefined
       },
       { status: statusCode }
