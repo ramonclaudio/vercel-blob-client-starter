@@ -1,6 +1,6 @@
 # Vercel Blob Client-Side Starter
 
-Complete client-side Vercel Blob starter with Next.js 15 & React 19. Features: drag & drop uploads, progress tracking, multipart support, advanced configuration, file gallery, copy/delete operations, professional SEO & social sharing, and 100% SDK compliance. Built with TypeScript, Tailwind CSS v4, and shadcn/ui components.
+Complete client-side Vercel Blob starter with Next.js 16 & React 19. Features: drag & drop uploads, progress tracking, multipart support, advanced configuration, file gallery, copy/delete operations, professional SEO & social sharing, and 100% SDK compliance. Built with TypeScript, Tailwind CSS v4, and shadcn/ui components.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/RMNCLDYO/vercel-blob-client-starter&env=BLOB_READ_WRITE_TOKEN&envDescription=Vercel%20Blob%20storage%20token&envLink=https://vercel.com/docs/storage/vercel-blob)
 
@@ -26,7 +26,7 @@ Complete client-side Vercel Blob starter with Next.js 15 & React 19. Features: d
 
 ## 🛠 Tech Stack
 
-- **Next.js 15** with App Router
+- **Next.js 16** with App Router
 - **React 19** with latest features
 - **TypeScript** with strict configuration
 - **Tailwind CSS v4** with custom theming
@@ -55,7 +55,7 @@ Deploy this template in one click:
    ```bash
    cp .env.example .env.local
    ```
-   
+
    Add your Vercel Blob token to `.env.local`:
    ```env
    BLOB_READ_WRITE_TOKEN=your_blob_token_here
@@ -229,7 +229,7 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 │   ├── twitter-image.tsx          # Dynamic Twitter card image (1200x600)
 │   ├── global-error.tsx           # Global error boundary
 │   ├── not-found.tsx              # Custom 404 page
-│   ├── viewport.ts                # Viewport configuration (Next.js 15)
+│   ├── viewport.ts                # Viewport configuration
 │   ├── favicon.ico                # Site favicon
 │   └── layout.tsx                 # Root layout with React 19 cache directives
 ├── components/
@@ -239,7 +239,7 @@ This starter demonstrates **every client-side Vercel Blob feature** with complet
 │   │   ├── skip-link.tsx          # Accessibility skip navigation
 │   │   ├── safe-link.tsx          # Safe internal navigation component
 │   │   ├── hover-prefetch-link.tsx # Performance-optimized navigation
-│   │   ├── search-button.tsx      # Next.js 15 Form integration
+│   │   ├── search-button.tsx      # Next.js Form integration
 │   │   ├── text-units.tsx         # Screen reader text utilities
 │   │   └── skeleton.tsx           # Loading state component
 │   ├── layout/
