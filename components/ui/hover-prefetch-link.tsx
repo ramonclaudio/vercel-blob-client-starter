@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { SafeLink } from '@/components/ui/safe-link'
+import Link from 'next/link'
 
 export function HoverPrefetchLink({
   href,
@@ -12,11 +12,11 @@ export function HoverPrefetchLink({
   href: string
   children: React.ReactNode
   className?: string
-} & Omit<React.ComponentProps<typeof SafeLink>, 'href' | 'prefetch'>) {
+} & Omit<React.ComponentProps<typeof Link>, 'href' | 'prefetch'>) {
   const [active, setActive] = useState(false)
 
   return (
-    <SafeLink
+    <Link
       href={href}
       prefetch={active ? null : false}
       onMouseEnter={() => setActive(true)}
@@ -24,6 +24,6 @@ export function HoverPrefetchLink({
       {...props}
     >
       {children}
-    </SafeLink>
+    </Link>
   )
 }
