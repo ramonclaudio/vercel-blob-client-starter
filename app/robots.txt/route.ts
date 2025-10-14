@@ -1,7 +1,9 @@
 import { NextRequest } from 'next/server'
 
 export async function GET(request: NextRequest) {
-  const host = request.headers.get('host') || 'localhost:3000'
+  // Next.js 16: headers() must be awaited
+  const headers = await request.headers
+  const host = headers.get('host') || 'localhost:3000'
   const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
   const baseUrl = `${protocol}://${host}`
 
@@ -12,21 +14,19 @@ User-agent: *
 Allow: /
 
 # Allow crawling of main pages
-Allow: /
 Allow: /upload
 Allow: /gallery
 
 # Disallow crawling of API routes
 Disallow: /api/
 
-# Disallow crawling of private files
+# Disallow crawling of Next.js internal files
 Disallow: /_next/
-Disallow: /.*
 
 # Allow search engines to access static assets
 Allow: /favicon.ico
-Allow: /opengraph-image.png
-Allow: /twitter-image.png
+Allow: /opengraph-image
+Allow: /twitter-image
 
 # Sitemap location
 Sitemap: ${baseUrl}/sitemap.xml

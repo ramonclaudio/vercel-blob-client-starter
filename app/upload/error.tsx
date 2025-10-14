@@ -5,6 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { AlertTriangle, RotateCcw, Upload, Home } from 'lucide-react'
 import Link from 'next/link'
 
+// Set to true to show error details in development
+// Note: In production builds, this entire block is tree-shaken if false
+const SHOW_ERROR_DETAILS = true;
+
 export default function UploadError({
   error,
   reset,
@@ -32,7 +36,7 @@ export default function UploadError({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {process.env.NODE_ENV === 'development' && (
+          {SHOW_ERROR_DETAILS && (
             <div className="p-3 bg-muted rounded-md">
               <p className="text-sm font-mono text-muted-foreground">
                 <strong>Error:</strong> {error.message}
