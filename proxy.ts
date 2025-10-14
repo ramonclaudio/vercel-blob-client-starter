@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const response = NextResponse.next();
 
   response.headers.set('X-DNS-Prefetch-Control', 'on');
@@ -19,13 +19,14 @@ export function middleware(request: NextRequest) {
     `style-src 'self' 'unsafe-inline'`,
     "img-src 'self' data: blob: https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com",
     "font-src 'self' data:",
-    "connect-src 'self' https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com https://vercel.live",
+    "connect-src 'self' https://vercel.com https://*.vercel.com https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com https://vercel.live",
     "media-src 'self' blob: https://*.blob.vercel-storage.com",
     "object-src 'none'",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
-    "upgrade-insecure-requests"
+    // Only upgrade insecure requests in production
+    ...(isDev ? [] : ["upgrade-insecure-requests"])
   ].join('; ');
 
   response.headers.set('Content-Security-Policy', cspHeader);
