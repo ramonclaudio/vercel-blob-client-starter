@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, useOptimistic, startTransition, useReducer } from 'react';
+import { useEffect, useCallback, useOptimistic, startTransition, useReducer, useRef, useMemo, useState } from 'react';
 import Form from 'next/form';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,15 +10,13 @@ import { SearchButton } from '@/components/ui/search-button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useListBlobs } from '@/hooks/useListBlobs';
+import { type BlobItem, type ListBlobsResult } from '@/hooks/useListBlobs';
 import { useDeleteBlob } from '@/hooks/useDeleteBlob';
 import { useCopyBlob } from '@/hooks/useCopyBlob';
 import { useBlobMetadata } from '@/hooks/useBlobMetadata';
 import { MetadataDialog } from '@/components/gallery/MetadataDialog';
 import {
   RefreshCw,
-  Folder,
-  FolderOpen,
   Grid3X3,
   List,
   ChevronRight,
@@ -36,13 +34,13 @@ import { toast } from 'sonner';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import type { BlobItem } from '@/hooks/useListBlobs';
 
 // React 19 useReducer UI state management
 interface UIState {
   currentFolder: string;
   viewMode: 'grid' | 'list';
   displayMode: 'expanded' | 'folded';
+  sortBy: 'newest' | 'oldest' | 'name-asc' | 'name-desc' | 'size-asc' | 'size-desc';
   selectedFile: BlobItem | null;
   metadataFile: BlobItem | null;
 }
@@ -51,6 +49,7 @@ type UIAction =
   | { type: 'SET_CURRENT_FOLDER'; payload: string }
   | { type: 'SET_VIEW_MODE'; payload: 'grid' | 'list' }
   | { type: 'SET_DISPLAY_MODE'; payload: 'expanded' | 'folded' }
+  | { type: 'SET_SORT_BY'; payload: 'newest' | 'oldest' | 'name-asc' | 'name-desc' | 'size-asc' | 'size-desc' }
   | { type: 'SET_SELECTED_FILE'; payload: BlobItem | null }
   | { type: 'SET_METADATA_FILE'; payload: BlobItem | null };
 
@@ -62,6 +61,8 @@ function uiReducer(state: UIState, action: UIAction): UIState {
       return { ...state, viewMode: action.payload };
     case 'SET_DISPLAY_MODE':
       return { ...state, displayMode: action.payload };
+    case 'SET_SORT_BY':
+      return { ...state, sortBy: action.payload };
     case 'SET_SELECTED_FILE':
       return { ...state, selectedFile: action.payload };
     case 'SET_METADATA_FILE':
@@ -74,30 +75,75 @@ function uiReducer(state: UIState, action: UIAction): UIState {
 export default function GalleryPage() {
   const searchParams = useSearchParams();
   const searchPrefix = searchParams.get('prefix') || '';
+  const initialLoadRef = useRef(false);
+  const [isBulkLoading, setIsBulkLoading] = useState(false);
+  const [localBlobs, setLocalBlobs] = useState<BlobItem[]>([]);
+  const [displayedBlobsCount, setDisplayedBlobsCount] = useState(50);
 
   // React 19 useReducer for unified UI state management
   const [uiState, dispatch] = useReducer(uiReducer, {
     currentFolder: '',
     viewMode: 'grid',
     displayMode: 'folded',
+    sortBy: 'newest',
     selectedFile: null,
     metadataFile: null,
   });
 
-  const { currentFolder, viewMode, displayMode, selectedFile, metadataFile } = uiState;
+  const { currentFolder, viewMode, displayMode, sortBy, selectedFile, metadataFile } = uiState;
 
-  const {
-    isLoading,
-    error,
-    data,
-    allBlobs,
-    loadMore,
-    refresh
-  } = useListBlobs();
+  // We're managing blobs manually with localBlobs, so we don't need the hook's state
+  // const { error, data, refresh } = useListBlobs();
+
+  // Filter and sort blobs based on search term and sort option
+  const sortedAllBlobs = useMemo(() => {
+    let blobs = [...localBlobs];
+
+    // Client-side filtering by search term (matches anywhere in pathname)
+    const searchTerm = searchPrefix.trim().toLowerCase();
+    if (searchTerm) {
+      blobs = blobs.filter(blob =>
+        blob.pathname.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Sort the filtered results
+    switch (sortBy) {
+      case 'newest':
+        // Newest first: larger timestamps come first (descending)
+        return blobs.sort((a, b) => {
+          const timeA = a.uploadedAt.getTime();
+          const timeB = b.uploadedAt.getTime();
+          return timeB - timeA; // b - a = descending (newest first)
+        });
+      case 'oldest':
+        // Oldest first: smaller timestamps come first (ascending)
+        return blobs.sort((a, b) => {
+          const timeA = a.uploadedAt.getTime();
+          const timeB = b.uploadedAt.getTime();
+          return timeA - timeB; // a - b = ascending (oldest first)
+        });
+      case 'name-asc':
+        return blobs.sort((a, b) => a.pathname.localeCompare(b.pathname));
+      case 'name-desc':
+        return blobs.sort((a, b) => b.pathname.localeCompare(a.pathname));
+      case 'size-asc':
+        return blobs.sort((a, b) => a.size - b.size);
+      case 'size-desc':
+        return blobs.sort((a, b) => b.size - a.size);
+      default:
+        return blobs;
+    }
+  }, [localBlobs, sortBy, searchPrefix]);
+
+  // Slice sorted blobs to show only the displayed count
+  const displayedSortedBlobs = useMemo(() => {
+    return sortedAllBlobs.slice(0, displayedBlobsCount);
+  }, [sortedAllBlobs, displayedBlobsCount]);
 
   // React 19 useOptimistic for instant delete and copy feedback
-  const [optimisticBlobs, updateOptimisticBlobs] = useOptimistic(
-    allBlobs,
+  const [sortedBlobs, updateOptimisticBlobs] = useOptimistic(
+    displayedSortedBlobs,
     (state, action: { type: 'delete'; url: string } | { type: 'add'; blob: BlobItem }) => {
       if (action.type === 'delete') {
         return state.filter(blob => blob.url !== action.url);
@@ -108,51 +154,107 @@ export default function GalleryPage() {
     }
   );
 
+  // Check if there are more blobs to load
+  const hasMore = displayedBlobsCount < sortedAllBlobs.length;
+
   const { deleteFile } = useDeleteBlob();
   const { copyBlob } = useCopyBlob();
   const { getMetadata, isLoading: isLoadingMetadata, metadata, error: metadataError } = useBlobMetadata();
 
   const handleRefresh = useCallback(async () => {
-    try {
-      const effectivePrefix = searchPrefix.trim() || currentFolder || undefined;
-      await refresh({
-        prefix: effectivePrefix,
-        mode: displayMode,
-        limit: 50,
+    setIsBulkLoading(true);
+    setDisplayedBlobsCount(50); // Reset to show only first 50
+
+    // Only use currentFolder as a prefix filter, not the search term
+    const effectivePrefix = currentFolder || undefined;
+
+    // Accumulate all blobs locally first to avoid re-renders
+    const accumulatedBlobs: BlobItem[] = [];
+    let cursor: string | undefined = undefined;
+    let hasMore = true;
+
+    // Fetch all pages
+    while (hasMore) {
+      const params = new URLSearchParams();
+      params.append('limit', '50');
+      if (effectivePrefix) params.append('prefix', effectivePrefix);
+      if (cursor) params.append('cursor', cursor);
+      if (displayMode) params.append('mode', displayMode);
+
+      const response = await fetch(`/api/list?${params.toString()}`).catch((err) => {
+        console.error('Fetch failed:', err);
+        toast.error('Network error: Failed to connect to the server');
+        setIsBulkLoading(false);
+        return null;
       });
-    } catch {
-      toast.error('Failed to load blobs');
+
+      if (!response) return;
+
+      // Always parse the response, whether ok or not
+      const data = await response.json().catch(() => ({ error: 'Failed to parse response' }));
+
+      if (!response.ok) {
+        // Handle missing token error gracefully - show toast and stop loading
+        if (data.isTokenMissing) {
+          toast.error(data.error, {
+            duration: 10000,
+            description: 'This is required for production builds. Check your .env.local file or Vercel environment variables.',
+          });
+          setIsBulkLoading(false);
+          return;
+        }
+
+        // For other errors, show toast and stop
+        toast.error(data.error || 'Failed to list blobs');
+        setIsBulkLoading(false);
+        return;
+      }
+
+      const result: ListBlobsResult = data;
+
+      // Convert uploadedAt strings to Date objects
+      const processedBlobs: BlobItem[] = result.blobs.map((blob) => ({
+        ...blob,
+        uploadedAt: new Date(blob.uploadedAt),
+      }));
+
+      accumulatedBlobs.push(...processedBlobs);
+      cursor = result.cursor;
+      hasMore = result.hasMore;
+
+      console.log(`Loaded page with ${processedBlobs.length} blobs, total: ${accumulatedBlobs.length}, hasMore: ${hasMore}`);
     }
-  }, [refresh, searchPrefix, currentFolder, displayMode]);
+
+    console.log(`Finished loading all ${accumulatedBlobs.length} blobs`);
+
+    // Update local state once with all blobs
+    setLocalBlobs(accumulatedBlobs);
+    setIsBulkLoading(false);
+  }, [currentFolder, displayMode]);
 
   useEffect(() => {
-    handleRefresh();
+    // Prevent double loading in React Strict Mode
+    if (initialLoadRef.current) return;
+    initialLoadRef.current = true;
+
+    // Always load all blobs on initial mount (search filtering happens client-side)
+    // Use startTransition to avoid cascading renders warning in React 19
+    startTransition(() => {
+      handleRefresh();
+    });
   }, [handleRefresh]);
+
+  // Watch for search prefix changes - no need to reload, just filter client-side
+  // The filtering happens in the sortedAllBlobs useMemo which depends on searchPrefix
 
   const handleFolderNavigation = async (folderPath: string) => {
     dispatch({ type: 'SET_CURRENT_FOLDER', payload: folderPath });
-    try {
-      await refresh({
-        prefix: folderPath || undefined,
-        mode: displayMode,
-        limit: 50,
-      });
-    } catch {
-      toast.error('Failed to navigate to folder');
-    }
+    await handleRefresh();
   };
 
-  const handleLoadMore = async () => {
-    try {
-      const effectivePrefix = searchPrefix.trim() || currentFolder || undefined;
-      await loadMore({
-        prefix: effectivePrefix,
-        mode: displayMode,
-        limit: 50,
-      });
-    } catch {
-      toast.error('Failed to load more blobs');
-    }
+  const handleLoadMore = () => {
+    // Increase displayed count by 50
+    setDisplayedBlobsCount(prev => prev + 50);
   };
 
   const handleDeleteFile = async (file: BlobItem) => {
@@ -167,9 +269,11 @@ export default function GalleryPage() {
 
     try {
       await deleteFile(file.url);
+
+      // Update localBlobs to remove the deleted file
+      setLocalBlobs((prev: BlobItem[]) => prev.filter((blob: BlobItem) => blob.url !== file.url));
+
       toast.success(`Successfully deleted ${fileName}!`, { id: toastId });
-      // Refresh to sync with server state
-      await handleRefresh();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Delete failed';
       toast.error(`Failed to delete file: ${errorMessage}`, { id: toastId });
@@ -215,14 +319,12 @@ export default function GalleryPage() {
 
   const handleGetMetadata = async (file: BlobItem) => {
     dispatch({ type: 'SET_METADATA_FILE', payload: file });
-    const toastId = toast.loading(`Getting metadata for ${file.pathname.split('/').pop()}...`);
-    
+
     try {
       await getMetadata(file.url);
-      toast.success(`Metadata loaded successfully!`, { id: toastId });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to get metadata';
-      toast.error(`Failed to get metadata: ${errorMessage}`, { id: toastId });
+      toast.error(`Failed to get metadata: ${errorMessage}`);
       dispatch({ type: 'SET_METADATA_FILE', payload: null });
     }
   };
@@ -424,7 +526,7 @@ export default function GalleryPage() {
               <Form action="/gallery" className="flex gap-2">
                 <Input
                   name="prefix"
-                  placeholder="Search by prefix..."
+                  placeholder="Search files by name..."
                   defaultValue={searchPrefix}
                 />
                 <SearchButton />
@@ -432,6 +534,20 @@ export default function GalleryPage() {
             </div>
 
             <div className="flex gap-2">
+              <Select value={sortBy} onValueChange={(value: 'newest' | 'oldest' | 'name-asc' | 'name-desc' | 'size-asc' | 'size-desc') => dispatch({ type: 'SET_SORT_BY', payload: value })}>
+                <SelectTrigger className="w-36">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="oldest">Oldest First</SelectItem>
+                  <SelectItem value="name-asc">Name A-Z</SelectItem>
+                  <SelectItem value="name-desc">Name Z-A</SelectItem>
+                  <SelectItem value="size-asc">Smallest First</SelectItem>
+                  <SelectItem value="size-desc">Largest First</SelectItem>
+                </SelectContent>
+              </Select>
+
               <Select value={displayMode} onValueChange={(value: 'expanded' | 'folded') => dispatch({ type: 'SET_DISPLAY_MODE', payload: value })}>
                 <SelectTrigger className="w-32">
                   <SelectValue />
@@ -456,69 +572,41 @@ export default function GalleryPage() {
                 </SelectContent>
               </Select>
 
-              <Button onClick={handleRefresh} disabled={isLoading}>
-                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <Button onClick={handleRefresh} disabled={isBulkLoading}>
+                <RefreshCw className={`w-4 h-4 ${isBulkLoading ? 'animate-spin' : ''}`} />
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {error && (
-        <Card className="mb-6 border-destructive">
-          <CardContent className="p-4">
-            <p className="text-destructive">{error}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {data?.folders && data.folders.length > 0 && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Folder className="w-5 h-5 mr-2" />
-              Folders ({data.folders.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {data.folders.map((folder, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="justify-start h-auto p-4"
-                  onClick={() => handleFolderNavigation(folder)}
-                >
-                  <FolderOpen className="w-5 h-5 mr-2" />
-                  <span className="truncate">{folder.split('/').pop()}</span>
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Folders feature removed - we load all blobs flat now for search to work */}
 
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>
-                Blobs ({optimisticBlobs.length})
-                {data?.hasMore && <span className="text-muted-foreground ml-2">(+more available)</span>}
+                Blobs ({sortedBlobs.length}{sortedAllBlobs.length > sortedBlobs.length ? ` of ${sortedAllBlobs.length}` : ''})
               </CardTitle>
               <CardDescription>
                 {currentFolder ? `Files in folder: ${currentFolder}` : 'All files in your blob store'}
               </CardDescription>
             </div>
-            {data?.hasMore && (
-              <Button onClick={handleLoadMore} disabled={isLoading}>
-                Load More
-              </Button>
-            )}
           </div>
         </CardHeader>
         <CardContent>
-          {optimisticBlobs.length === 0 && !isLoading ? (
+          {isBulkLoading ? (
+            <div className="text-center py-12">
+              <div className="text-muted-foreground">
+                <div className="mb-4">
+                  <RefreshCw className="w-8 h-8 animate-spin mx-auto" />
+                </div>
+                <p>Loading all blobs...</p>
+                <p className="text-sm mt-2">This may take a moment for large collections</p>
+              </div>
+            </div>
+          ) : sortedBlobs.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-muted-foreground">
                 <div className="text-4xl mb-4">📁</div>
@@ -531,7 +619,7 @@ export default function GalleryPage() {
               ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
               : "space-y-2"
             }>
-              {optimisticBlobs.map((file, index) => (
+              {sortedBlobs.map((file, index) => (
                 <Card key={`${file.url}-${index}`} className={viewMode === 'grid' ? "overflow-hidden" : ""}>
                   <CardContent className={viewMode === 'grid' ? "p-4" : "p-3"}>
                     {viewMode === 'grid' ? (
@@ -624,6 +712,14 @@ export default function GalleryPage() {
                   </div>
                 </Card>
               ))}
+            </div>
+          )}
+
+          {hasMore && !isBulkLoading && sortedBlobs.length > 0 && (
+            <div className="mt-6 text-center">
+              <Button onClick={handleLoadMore} variant="outline" size="lg">
+                Load More ({sortedAllBlobs.length - displayedBlobsCount} remaining)
+              </Button>
             </div>
           )}
         </CardContent>
