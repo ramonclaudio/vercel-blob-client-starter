@@ -1,5 +1,3 @@
-// 'use cache'; // Enable for React 19 caching with Next.js canary + experimental.useCache: true
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Technology {
@@ -9,8 +7,6 @@ interface Technology {
 }
 
 export async function ModernTechnologies() {
-  // 'use cache'; // Enable for React 19 component-level caching
-
   const technologies: Technology[] = [
     {
       emoji: "⚛️",
@@ -19,7 +15,7 @@ export async function ModernTechnologies() {
     },
     {
       emoji: "▲",
-      name: "Next.js 15",
+      name: "Next.js 16",
       description: "App Router"
     },
     {

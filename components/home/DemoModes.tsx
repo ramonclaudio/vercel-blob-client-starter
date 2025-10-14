@@ -1,5 +1,3 @@
-// 'use cache'; // Enable for React 19 caching with Next.js canary + experimental.useCache: true
-
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,8 +9,6 @@ interface Demo {
 }
 
 export async function DemoModes() {
-  // 'use cache'; // Enable for React 19 component-level caching
-
   const demos: Demo[] = [
     {
       title: "Standard Upload",

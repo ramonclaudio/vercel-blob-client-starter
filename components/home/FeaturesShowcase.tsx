@@ -1,5 +1,3 @@
-// 'use cache'; // Enable for React 19 caching with Next.js canary + experimental.useCache: true
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Image as ImageIcon, Settings, Zap, Shield, Globe } from "lucide-react";
 
@@ -11,8 +9,6 @@ interface Feature {
 }
 
 export async function FeaturesShowcase() {
-  // 'use cache'; // Enable for React 19 component-level caching
-
   const features: Feature[] = [
     {
       icon: Upload,
