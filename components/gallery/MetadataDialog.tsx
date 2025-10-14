@@ -1,22 +1,20 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Info } from 'lucide-react';
-import type { BlobItem } from '@/hooks/useListBlobs';
+import type { BlobMetadata } from '@/hooks/useBlobMetadata';
+
+interface MetadataFile {
+  pathname?: string;
+  url?: string;
+}
 
 interface MetadataDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  metadataFile: BlobItem | null;
+  metadataFile: MetadataFile | null;
   isLoadingMetadata: boolean;
-  metadata: {
-    size: number;
-    contentType: string;
-    uploadedAt: Date;
-    cacheControl: string;
-    url: string;
-    downloadUrl: string;
-  } | null;
+  metadata: BlobMetadata | null;
   metadataError: string | null;
   formatFileSize: (bytes: number) => string;
   formatDate: (dateString: string) => string;
@@ -34,20 +32,24 @@ export function MetadataDialog({
 }: MetadataDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <Info className="w-5 h-5 mr-2" />
-            Blob Metadata
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden p-0" aria-describedby="metadata-description">
+        <div className="flex flex-col max-h-[85vh]">
+          <DialogHeader className="p-6 pb-4">
+            <DialogTitle className="flex items-center">
+              <Info className="w-5 h-5 mr-2" />
+              Blob Metadata
+            </DialogTitle>
+            <DialogDescription id="metadata-description">
+              Detailed information about the selected blob file including size, content type, upload time, and URLs.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 overflow-y-auto px-6 pb-6">
           {metadataFile && (
             <div className="bg-muted/50 p-4 rounded-lg">
               <h4 className="font-medium mb-2">File Information</h4>
               <div className="text-sm space-y-1">
-                <div><span className="font-medium">Filename:</span> {metadataFile.pathname.split('/').pop()}</div>
-                <div><span className="font-medium">Full Path:</span> {metadataFile.pathname}</div>
+                <div><span className="font-medium">Filename:</span> {metadataFile.pathname?.split('/').pop() || 'Unknown'}</div>
+                <div><span className="font-medium">Full Path:</span> {metadataFile.pathname || 'Unknown'}</div>
               </div>
             </div>
           )}
@@ -107,8 +109,16 @@ export function MetadataDialog({
                   </div>
                 </div>
               </div>
+
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h4 className="font-medium mb-3">Content Disposition</h4>
+                <div className="font-mono text-xs break-all bg-background p-2 rounded border">
+                  {metadata.contentDisposition}
+                </div>
+              </div>
             </div>
           )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
