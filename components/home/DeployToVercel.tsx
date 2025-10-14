@@ -1,11 +1,7 @@
-// 'use cache'; // Enable for React 19 caching with Next.js canary + experimental.useCache: true
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export async function DeployToVercel() {
-  // 'use cache'; // Enable for React 19 component-level caching
-
   return (
     <section className="py-12 lg:py-16">
       <Card>
