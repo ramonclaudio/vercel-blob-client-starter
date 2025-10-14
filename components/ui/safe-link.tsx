@@ -19,14 +19,12 @@ export function SafeLink({
   const { isBlocked } = useNavigationBlocker()
 
   const handleNavigate = (e: { preventDefault: () => void }) => {
-    if (!isBlocked || bypassConfirmation) {
-      return
-    }
+    if (isBlocked && !bypassConfirmation) {
+      const message = confirmMessage || 'File deletion in progress. Are you sure you want to leave?'
 
-    const message = confirmMessage || 'File deletion in progress. Are you sure you want to leave?'
-
-    if (!window.confirm(message)) {
-      e.preventDefault()
+      if (!window.confirm(message)) {
+        e.preventDefault()
+      }
     }
   }
 
