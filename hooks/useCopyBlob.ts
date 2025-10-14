@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, startTransition } from 'react';
 import { type PutBlobResult } from '@vercel/blob';
 
 export interface CopyOptions {
@@ -31,10 +31,12 @@ export function useCopyBlob() {
   ): Promise<PutBlobResult> => {
     abortControllerRef.current = new AbortController();
 
-    setCopyState({
-      isCopying: true,
-      error: null,
-      result: null,
+    startTransition(() => {
+      setCopyState({
+        isCopying: true,
+        error: null,
+        result: null,
+      });
     });
 
     try {
@@ -65,20 +67,24 @@ export function useCopyBlob() {
 
       const result = await response.json();
 
-      setCopyState({
-        isCopying: false,
-        error: null,
-        result,
+      startTransition(() => {
+        setCopyState({
+          isCopying: false,
+          error: null,
+          result,
+        });
       });
 
       return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Copy failed';
-      
-      setCopyState({
-        isCopying: false,
-        error: errorMessage,
-        result: null,
+
+      startTransition(() => {
+        setCopyState({
+          isCopying: false,
+          error: errorMessage,
+          result: null,
+        });
       });
 
       throw error;
@@ -88,19 +94,23 @@ export function useCopyBlob() {
   const abortCopy = useCallback(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
-      setCopyState(prev => ({
-        ...prev,
-        isCopying: false,
-        error: 'Copy operation cancelled',
-      }));
+      startTransition(() => {
+        setCopyState(prev => ({
+          ...prev,
+          isCopying: false,
+          error: 'Copy operation cancelled',
+        }));
+      });
     }
   }, []);
 
   const resetState = useCallback(() => {
-    setCopyState({
-      isCopying: false,
-      error: null,
-      result: null,
+    startTransition(() => {
+      setCopyState({
+        isCopying: false,
+        error: null,
+        result: null,
+      });
     });
   }, []);
 
