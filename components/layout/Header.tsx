@@ -102,7 +102,7 @@ export function Header() {
                       Official Vercel Blob docs
                     </ListItem>
                     <ListItem
-                      href="https://github.com/RMNCLDYO/vercel-blob-client-starter"
+                      href="https://github.com/ramonclaudio/vercel-blob-client-starter"
                       title="GitHub"
                       external
                     >
@@ -179,7 +179,7 @@ export function Header() {
                     Documentation
                   </MobileNavItem>
                   <MobileNavItem
-                    href="https://github.com/RMNCLDYO/vercel-blob-client-starter"
+                    href="https://github.com/ramonclaudio/vercel-blob-client-starter"
                     onClick={() => setIsOpen(false)}
                     external
                     className="ml-3"

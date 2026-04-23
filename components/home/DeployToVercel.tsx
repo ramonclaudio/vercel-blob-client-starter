@@ -18,7 +18,7 @@ export async function DeployToVercel() {
           </p>
           <Button asChild size="lg" className="text-lg px-8">
             <a
-              href="https://vercel.com/new/clone?repository-url=https://github.com/RMNCLDYO/vercel-blob-client-starter&env=BLOB_READ_WRITE_TOKEN&envDescription=Your%20Vercel%20Blob%20read-write%20token&envLink=https://vercel.com/docs/storage/vercel-blob/quickstart"
+              href="https://vercel.com/new/clone?repository-url=https://github.com/ramonclaudio/vercel-blob-client-starter&env=BLOB_READ_WRITE_TOKEN&envDescription=Your%20Vercel%20Blob%20read-write%20token&envLink=https://vercel.com/docs/storage/vercel-blob/quickstart"
               target="_blank"
               rel="noopener noreferrer"
             >

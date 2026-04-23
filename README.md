@@ -2,7 +2,7 @@
 
 Complete client-side Vercel Blob starter with Next.js 16 & React 19. Features: drag & drop uploads, progress tracking, multipart support, advanced configuration, file gallery, copy/delete operations, professional SEO & social sharing, and 100% SDK compliance. Built with TypeScript, Tailwind CSS v4, and shadcn/ui components.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/RMNCLDYO/vercel-blob-client-starter&env=BLOB_READ_WRITE_TOKEN&envDescription=Vercel%20Blob%20storage%20token&envLink=https://vercel.com/docs/storage/vercel-blob)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ramonclaudio/vercel-blob-client-starter&env=BLOB_READ_WRITE_TOKEN&envDescription=Vercel%20Blob%20storage%20token&envLink=https://vercel.com/docs/storage/vercel-blob)
 
 ## ✨ Features
 
@@ -40,13 +40,13 @@ Complete client-side Vercel Blob starter with Next.js 16 & React 19. Features: d
 
 Deploy this template in one click:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/RMNCLDYO/vercel-blob-client-starter&env=BLOB_READ_WRITE_TOKEN&envDescription=Vercel%20Blob%20storage%20token&envLink=https://vercel.com/docs/storage/vercel-blob)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ramonclaudio/vercel-blob-client-starter&env=BLOB_READ_WRITE_TOKEN&envDescription=Vercel%20Blob%20storage%20token&envLink=https://vercel.com/docs/storage/vercel-blob)
 
 ### Local Development
 
 1. **Clone and install dependencies:**
    ```bash
-   git clone https://github.com/RMNCLDYO/vercel-blob-client-starter.git my-blob-app
+   git clone https://github.com/ramonclaudio/vercel-blob-client-starter.git my-blob-app
    cd my-blob-app
    pnpm install
    ```
@@ -393,7 +393,7 @@ View source on your deployed site to see the auto-generated meta tags:
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request [here](https://github.com/RMNCLDYO/vercel-blob-client-starter/pulls).
+Contributions are welcome! Please feel free to submit a Pull Request [here](https://github.com/ramonclaudio/vercel-blob-client-starter/pulls).
 
 ## 📄 License
 

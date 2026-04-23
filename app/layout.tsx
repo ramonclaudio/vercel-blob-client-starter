@@ -109,7 +109,7 @@ const jsonLd: WithContext<SoftwareApplication> = {
     name: 'Vercel',
     url: 'https://vercel.com'
   },
-  url: 'https://github.com/RMNCLDYO/vercel-blob-client-starter',
+  url: 'https://github.com/ramonclaudio/vercel-blob-client-starter',
   featureList: [
     'Drag & Drop Upload',
     'Progress Tracking',
@@ -120,8 +120,8 @@ const jsonLd: WithContext<SoftwareApplication> = {
     'Cancel Uploads',
     'Professional SEO'
   ],
-  downloadUrl: 'https://github.com/RMNCLDYO/vercel-blob-client-starter',
-  installUrl: 'https://vercel.com/new/clone?repository-url=https://github.com/RMNCLDYO/vercel-blob-client-starter',
+  downloadUrl: 'https://github.com/ramonclaudio/vercel-blob-client-starter',
+  installUrl: 'https://vercel.com/new/clone?repository-url=https://github.com/ramonclaudio/vercel-blob-client-starter',
   screenshot: 'https://vercel-blob-client-starter.vercel.app/opengraph-image',
   softwareVersion: '1.0.1',
   datePublished: '2024-01-01',

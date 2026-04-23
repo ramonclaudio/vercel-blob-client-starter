@@ -108,7 +108,7 @@ export function Footer() {
                 Documentation
               </a>
               <a 
-                href="https://github.com/RMNCLDYO/vercel-blob-client-starter" 
+                href="https://github.com/ramonclaudio/vercel-blob-client-starter" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -146,7 +146,7 @@ export function Footer() {
           </div>
           <div className="flex items-center space-x-2">
             <a 
-              href="https://github.com/RMNCLDYO" 
+              href="https://github.com/Ramon Claudio" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
