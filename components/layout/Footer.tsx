@@ -146,7 +146,7 @@ export function Footer() {
           </div>
           <div className="flex items-center space-x-2">
             <a 
-              href="https://github.com/Ramon Claudio" 
+              href="https://github.com/ramonclaudio" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
